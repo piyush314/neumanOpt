@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neumann-kernels"
+version = "0.1.0"
+description = "Certified higher-radix Neumann-kernel data and bound evaluators"
+requires-python = ">=3.9"
+dependencies = ["numpy"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}

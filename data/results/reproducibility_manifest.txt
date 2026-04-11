@@ -1,0 +1,7 @@
+git_commit=4775ed1012d0ff81010a67460dfd9ef26597adaa
+figure: qrho_curves -> scripts/reproduce_theory_figures.py -> figures/plots/qrho_curves.pdf
+figure: theory_bounds -> scripts/reproduce_theory_figures.py -> figures/plots/theory_bounds.pdf
+table-data: qrho_radii -> scripts/certify_kernel.py -> supplement/qrho_radii.csv
+table-data: jacobian_rank_report -> scripts/certify_kernel.py -> supplement/jacobian_rank_report.csv
+table-data: theory_validation -> scripts/reproduce_theory_figures.py -> supplement/theory_validation.csv
+table-data: failure_side -> scripts/reproduce_theory_figures.py -> supplement/failure_side.csv
