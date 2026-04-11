@@ -1,10 +1,9 @@
 # Companion Paper
 
-The library stands on its own, but the paper is still useful if you want the
-full derivations, theorem statements, and certification context behind the
-shipped kernels.
+This paper gives the derivations, theorem statements, and certification context
+behind the methods implemented in the library.
 
-## What The Paper Adds
+## What The Paper Covers
 
 - the exact radix-9 construction,
 - the certified higher-radix approximate constructions,
