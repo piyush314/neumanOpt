@@ -31,6 +31,17 @@ This repository is meant to be useful on its own:
 The companion paper is included only as a reference for proofs and derivations,
 not as the reason the repository exists.
 
+## Documentation Site
+
+- Homepage: <https://piyush314.github.io/neumanOpt/>
+- First steps tutorial: <https://piyush314.github.io/neumanOpt/tutorials/first-steps>
+- Certified kernels tutorial: <https://piyush314.github.io/neumanOpt/tutorials/certified-kernels>
+- Cost model tutorial: <https://piyush314.github.io/neumanOpt/tutorials/cost-model-and-benefit-plot>
+- Paper page: <https://piyush314.github.io/neumanOpt/paper>
+- Colab first steps: <https://colab.research.google.com/github/piyush314/neumanOpt/blob/main/docs/tutorials/01_first_steps.ipynb>
+- Colab certified kernels: <https://colab.research.google.com/github/piyush314/neumanOpt/blob/main/docs/tutorials/02_certified_kernels.ipynb>
+- Colab cost model walkthrough: <https://colab.research.google.com/github/piyush314/neumanOpt/blob/main/docs/tutorials/03_cost_model_and_benefit_plot.ipynb>
+
 ## Why use this library?
 
 Use `neumann-kernels` when you need one of these:
@@ -56,7 +67,7 @@ the update overhead per outer step.
 The plot below compares the matrix-product count needed to reach a target degree
 `d` using direct evaluation versus the kernels shipped here.
 
-![Matrix-product count versus target degree](assets/multiply_count_vs_degree.png)
+![Matrix-product count versus target degree](docs/_static/multiply_count_vs_degree.png)
 
 ## Kernel Catalog
 
@@ -114,16 +125,12 @@ Expected takeaways:
 
 ## Tutorials
 
-Start with the notebooks in [`notebooks/`](notebooks):
+Start with the tutorials in the
+[documentation site](https://piyush314.github.io/neumanOpt/):
 
-- [`01_first_steps.ipynb`](notebooks/01_first_steps.ipynb): what truncated
-  Neumann kernels are, why radix matters, and how to choose a first kernel.
-- [`02_certified_kernels.ipynb`](notebooks/02_certified_kernels.ipynb): how to
-  load the shipped radix-15 and radix-24 certificates and interpret the safe
-  radii.
-- [`03_cost_model_and_benefit_plot.ipynb`](notebooks/03_cost_model_and_benefit_plot.ipynb):
-  how the logarithmic cost model is built up and how to reproduce the README
-  benefit plot.
+- [`First steps`](https://piyush314.github.io/neumanOpt/tutorials/first-steps) or [open in Colab](https://colab.research.google.com/github/piyush314/neumanOpt/blob/main/docs/tutorials/01_first_steps.ipynb): what truncated Neumann kernels are, why radix matters, and how to choose a first kernel.
+- [`Certified kernels`](https://piyush314.github.io/neumanOpt/tutorials/certified-kernels) or [open in Colab](https://colab.research.google.com/github/piyush314/neumanOpt/blob/main/docs/tutorials/02_certified_kernels.ipynb): how to load the shipped radix-15 and radix-24 certificates and interpret the safe radii.
+- [`Cost model and benefit plot`](https://piyush314.github.io/neumanOpt/tutorials/cost-model-and-benefit-plot) or [open in Colab](https://colab.research.google.com/github/piyush314/neumanOpt/blob/main/docs/tutorials/03_cost_model_and_benefit_plot.ipynb): how the logarithmic cost model is built up and how to reproduce the README benefit plot.
 
 ## Repository Layout
 
@@ -131,7 +138,7 @@ Start with the notebooks in [`notebooks/`](notebooks):
 - `data/certified/`: machine-readable certified kernel JSON files.
 - `data/results/`: summary CSV and manifest files.
 - `scripts/`: small standalone utilities, including the README plot generator.
-- `notebooks/`: beginner tutorials and derivations.
+- `docs/`: the GitHub Pages site, including the canonical tutorial notebooks.
 - `paper/arxiv.pdf`: a copy of the companion paper PDF.
 
 ## Companion Paper
@@ -142,6 +149,7 @@ For proofs, the full kernel derivations, and the certification arguments, see
 ## Where To Start
 
 If you are new to the library, begin with
-[`notebooks/01_first_steps.ipynb`](notebooks/01_first_steps.ipynb), then use
+the [documentation homepage](https://piyush314.github.io/neumanOpt/) or the
+[first steps tutorial](https://piyush314.github.io/neumanOpt/tutorials/first-steps), then use
 `kernel_catalog()` to choose a radix and `load_certified_kernel()` when you need
 the shipped higher-radix certificates.

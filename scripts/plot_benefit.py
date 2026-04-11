@@ -12,7 +12,7 @@ from neumann_kernels import kernel_catalog, multiply_count
 
 
 def main():
-    outdir = ROOT / "assets"
+    outdir = ROOT / "docs" / "_static"
     outdir.mkdir(exist_ok=True)
 
     degrees = np.array([2 ** k for k in range(3, 14)], dtype=int)

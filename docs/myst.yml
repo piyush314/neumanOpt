@@ -1,0 +1,26 @@
+version: 1
+
+project:
+  id: d11b3f2c-9d3a-40fe-8b7c-cf8f18d8bb2c
+  title: neumann-kernels
+  description: Low-product radix kernels for truncated Neumann series, matrix inverse refinement, and certified higher-radix contraction analysis.
+  keywords:
+    - truncated Neumann series
+    - matrix inverse refinement
+    - numerical linear algebra
+  github: https://github.com/piyush314/neumanOpt
+  toc:
+    - file: index.md
+    - file: install.md
+    - file: paper.md
+    - title: Tutorials
+      children:
+        - file: tutorials/01_first_steps.ipynb
+        - file: tutorials/02_certified_kernels.ipynb
+        - file: tutorials/03_cost_model_and_benefit_plot.ipynb
+
+site:
+  title: neumann-kernels
+  template: book-theme
+  options:
+    folders: true
