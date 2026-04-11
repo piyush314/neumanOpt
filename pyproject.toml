@@ -9,5 +9,9 @@ description = "Certified higher-radix Neumann-kernel data and bound evaluators"
 requires-python = ">=3.9"
 dependencies = ["numpy"]
 
+[project.optional-dependencies]
+plots = ["matplotlib"]
+tutorials = ["matplotlib", "jupyter", "notebook"]
+
 [tool.setuptools]
 package-dir = {"" = "src"}

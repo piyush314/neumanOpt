@@ -4,6 +4,7 @@ from .polynomial_maps import error_map_coefficients, eta_rho, q_rho
 from .residual_iteration import matrix_residual_norm
 from .bounds import crouzeix_bound
 from .io import load_certified_kernel
+from .cost_model import asymptotic_coefficient, kernel_catalog, multiply_count
 
 __all__ = [
     "quinary_coeffs",
@@ -15,4 +16,7 @@ __all__ = [
     "matrix_residual_norm",
     "crouzeix_bound",
     "load_certified_kernel",
+    "asymptotic_coefficient",
+    "kernel_catalog",
+    "multiply_count",
 ]
