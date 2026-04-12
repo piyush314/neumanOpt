@@ -1,0 +1,829 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 1106.131 589.9679"
+   width="1106.131"
+   height="589.9679"
+   version="1.1"
+   id="svg105"
+   sodipodi:docname="svgviewer-output.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview105"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.69606307"
+     inkscape:cx="568.91397"
+     inkscape:cy="290.20359"
+     inkscape:window-width="1464"
+     inkscape:window-height="921"
+     inkscape:window-x="50"
+     inkscape:window-y="33"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg105" />
+  <!-- Definitions for Markers, Patterns, and Filters -->
+  <defs
+     id="defs4">
+    <!-- Blueprint Grid Pattern -->
+    <pattern
+       id="grid-minor"
+       width="20"
+       height="20"
+       patternUnits="userSpaceOnUse">
+      <path
+         d="M 20 0 L 0 0 0 20"
+         fill="none"
+         stroke="rgba(237,242,239,0.06)"
+         stroke-width="0.5"
+         id="path1" />
+    </pattern>
+    <pattern
+       id="grid-major"
+       width="100"
+       height="100"
+       patternUnits="userSpaceOnUse">
+      <rect
+         width="100"
+         height="100"
+         fill="url(#grid-minor)"
+         id="rect1" />
+      <path
+         d="M 100 0 L 0 0 0 100"
+         fill="none"
+         stroke="rgba(237,242,239,0.15)"
+         stroke-width="1"
+         id="path2" />
+    </pattern>
+    <!-- Arrowheads -->
+    <marker
+       id="arrow-white"
+       viewBox="0 0 10 10"
+       refX="8"
+       refY="5"
+       markerWidth="6"
+       markerHeight="6"
+       orient="auto-start-reverse">
+      <path
+         d="M 0,0 10,5 0,10 Z"
+         fill="#edf2ef"
+         id="path3" />
+    </marker>
+    <marker
+       id="arrow-yellow"
+       viewBox="0 0 10 10"
+       refX="8"
+       refY="5"
+       markerWidth="6"
+       markerHeight="6"
+       orient="auto-start-reverse">
+      <path
+         d="M 0,0 10,5 0,10 Z"
+         fill="#d1d646"
+         id="path4" />
+    </marker>
+    <!-- Drop Shadow for Boxes -->
+    <filter
+       id="shadow"
+       x="0"
+       y="0"
+       width="1"
+       height="1">
+      <feDropShadow
+         dx="3"
+         dy="5"
+         stdDeviation="4"
+         flood-color="#000000"
+         flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect
+     width="101.27021%"
+     height="101.57524%"
+     fill="#212738"
+     id="rect4"
+     x="0"
+     y="0"
+     style="stroke-width:1.01423" />
+  <!-- Global Font Settings -->
+  <text
+     x="25.447872"
+     y="34.47945"
+     font-size="28px"
+     font-weight="bold"
+     letter-spacing="1"
+     id="text8"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#edf2ef">RADIX-9 KERNEL: EXPLICIT CIRCUIT FOR <tspan
+   font-family="Georgia, serif"
+   font-style="italic"
+   id="tspan5">T</tspan><tspan
+   font-size="18px"
+   baseline-shift="sub"
+   font-family="Georgia, serif"
+   font-style="italic"
+   id="tspan6">9</tspan><tspan
+   font-family="Georgia, serif"
+   font-style="italic"
+   id="tspan7">(B)</tspan> = I + B + ··· + B <tspan
+   font-size="18px"
+   baseline-shift="super"
+   id="tspan8">8</tspan></text>
+  <line
+     x1="25.447872"
+     y1="49.47945"
+     x2="1057.3745"
+     y2="49.47945"
+     stroke="#57c4e5"
+     stroke-width="1.91975"
+     id="line8"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#edf2ef" />
+  <path
+     d="M 5.4331707,96.347871 H 45.461841 V 539.46523"
+     marker-end="none"
+     id="path8"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:1.94266;stroke-linejoin:round" />
+  <text
+     x="49.141136"
+     y="78.472633"
+     font-size="23.175px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#d1d646"
+     stroke="none"
+     id="text9"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;stroke-width:3.86249;stroke-linejoin:round;marker-end:url(#arrow-white)"
+     transform="scale(0.84965897,1.1769428)">INPUT B</text>
+  <path
+     d="M 85.447861,139.47944 V 539.47945"
+     marker-end="none"
+     id="path9"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round" />
+  <path
+     d="M 125.44787,249.47944 V 539.47945"
+     marker-end="none"
+     id="path10"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round" />
+  <path
+     d="m 165.44787,429.47945 v 110"
+     marker-end="none"
+     id="path11"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round" />
+  <g
+     font-size="14px"
+     font-weight="bold"
+     fill="#57c4e5"
+     stroke="none"
+     id="g14"
+     transform="translate(-14.55214,-10.520549)"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)">
+    <text
+       x="60"
+       y="570"
+       text-anchor="middle"
+       id="text11">B</text>
+    <text
+       x="100"
+       y="570"
+       text-anchor="middle"
+       id="text12">U</text>
+    <text
+       x="140"
+       y="570"
+       text-anchor="middle"
+       id="text13">V</text>
+    <text
+       x="180"
+       y="570"
+       text-anchor="middle"
+       id="text14">W</text>
+  </g>
+  <path
+     d="M 45.447861,99.479451 H 235.44787"
+     id="path14"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="M 45.447861,189.47944 H 235.44787"
+     id="path15"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="M 85.447861,209.47944 H 235.44787"
+     id="path16"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="M 45.447861,309.47944 H 235.44787"
+     id="path17"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="M 85.447861,334.47945 H 235.44787"
+     id="path18"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="m 125.44787,359.47945 h 110"
+     id="path19"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="m 485.44786,319.47944 h 50"
+     id="path20"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="m 485.44786,349.47945 h 50"
+     id="path21"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="m 165.44787,479.47945 h 70"
+     id="path22"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="M 45.447861,494.47945 H 235.44787"
+     id="path23"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="M 85.447861,509.47945 H 235.44787"
+     id="path24"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="m 125.44787,524.47945 h 110"
+     id="path25"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="m 593.91881,497.03297 h 70.00001"
+     id="path26"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-white)" />
+  <path
+     d="m 471.7771,99.514121 h 55.19536 V 139.44476 H 85.409571"
+     id="path27"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2.09952;stroke-linejoin:round" />
+  <path
+     d="m 485.44786,199.47944 h 40 v 50 H 125.44787"
+     id="path28"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round" />
+  <path
+     d="m 693.00139,333.25621 h 40 v 95 h -570"
+     id="path29"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:none;stroke:#edf2ef;stroke-width:2;stroke-linejoin:round" />
+  <g
+     fill="#edf2ef"
+     id="g41"
+     transform="translate(-14.55214,-10.520549)"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+    <!-- B Taps -->
+    <circle
+       cx="60"
+       cy="110"
+       r="4"
+       id="circle29" />
+    <circle
+       cx="60"
+       cy="200"
+       r="4"
+       id="circle30" />
+    <circle
+       cx="60"
+       cy="320"
+       r="4"
+       id="circle31" />
+    <circle
+       cx="60"
+       cy="505"
+       r="4"
+       id="circle32" />
+    <!-- U Taps -->
+    <circle
+       cx="100"
+       cy="150"
+       r="4"
+       id="circle33" />
+    <!-- U injection -->
+    <circle
+       cx="100"
+       cy="220"
+       r="4"
+       id="circle34" />
+    <circle
+       cx="100"
+       cy="345"
+       r="4"
+       id="circle35" />
+    <circle
+       cx="100"
+       cy="520"
+       r="4"
+       id="circle36" />
+    <!-- V Taps -->
+    <circle
+       cx="140"
+       cy="260"
+       r="4"
+       id="circle37" />
+    <!-- V injection -->
+    <circle
+       cx="140"
+       cy="370"
+       r="4"
+       id="circle38" />
+    <circle
+       cx="140"
+       cy="535"
+       r="4"
+       id="circle39" />
+    <!-- W Taps -->
+    <circle
+       cx="180"
+       cy="440"
+       r="4"
+       id="circle40" />
+    <!-- W injection -->
+    <circle
+       cx="180"
+       cy="490"
+       r="4"
+       id="circle41" />
+  </g>
+  <text
+     x="200.44788"
+     y="91.479446"
+     id="text41"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">B</text>
+  <text
+     x="200.44788"
+     y="181.47945"
+     id="text42"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">B</text>
+  <text
+     x="200.44788"
+     y="204.47945"
+     id="text43"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">U</text>
+  <text
+     x="200.44788"
+     y="301.47946"
+     id="text44"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">B</text>
+  <text
+     x="200.44788"
+     y="326.47946"
+     id="text45"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">U</text>
+  <text
+     x="200.44788"
+     y="351.47946"
+     id="text46"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">V</text>
+  <text
+     x="493.4754"
+     y="91.479446"
+     id="text47"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">U</text>
+  <text
+     x="500.44788"
+     y="191.47945"
+     id="text48"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">V</text>
+  <text
+     x="510.44791"
+     y="311.47946"
+     id="text49"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">P</text>
+  <text
+     x="510.44791"
+     y="341.47946"
+     id="text50"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">Q</text>
+  <text
+     x="710.44781"
+     y="326.47946"
+     id="text51"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">W</text>
+  <text
+     x="200.44788"
+     y="471.47946"
+     id="text52"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">W</text>
+  <text
+     x="200.44788"
+     y="489.47946"
+     id="text53"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">B</text>
+  <text
+     x="200.44788"
+     y="504.47946"
+     id="text54"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">U</text>
+  <text
+     x="200.44788"
+     y="519.47943"
+     id="text55"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">V</text>
+  <text
+     x="682.42035"
+     y="489.37247"
+     id="text56"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">OUTPUT:</text>
+  <text
+     x="682.42035"
+     y="509.37247"
+     id="text57"
+     style="font-style:italic;font-size:14px;font-family:Georgia, serif;fill:#57c4e5">T<tspan
+   font-size="10px"
+   baseline-shift="sub"
+   id="tspan56">9</tspan>(B)</text>
+  <text
+     x="297.24475"
+     y="126.31125"
+     id="text61"
+     style="font-weight:bold;font-size:12px;font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;letter-spacing:0.5;fill:#57c4e5">MM1: MATRIX MULTIPLY 1</text>
+  <text
+     x="297.24475"
+     y="228.75774"
+     id="text62"
+     style="font-weight:bold;font-size:12px;font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;letter-spacing:0.5;fill:#57c4e5">MM2: MATRIX MULTIPLY 2</text>
+  <text
+     x="297.24475"
+     y="282.48865"
+     id="text63"
+     style="font-weight:bold;font-size:12px;font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;letter-spacing:0.5;fill:#57c4e5">PRE-PRODUCT COMBINATIONS</text>
+  <text
+     x="550.12677"
+     y="361.99933"
+     id="text64"
+     style="font-weight:bold;font-size:12px;font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;letter-spacing:0.5;fill:#57c4e5">MM3: MATRIX MULTIPLY 3</text>
+  <text
+     x="265.44046"
+     y="472.06052"
+     id="text65"
+     style="font-weight:bold;font-size:12px;font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;letter-spacing:0.5;fill:#57c4e5">FINAL COMBINATION &amp; LOW-DEGREE CORRECTION</text>
+  <text
+     x="335.44788"
+     y="106.47944"
+     text-anchor="middle"
+     id="text66"
+     style="font-style:italic;font-size:20px;font-family:Georgia, serif;fill:#edf2ef">U = B · B</text>
+  <text
+     x="368.07483"
+     y="206.47945"
+     text-anchor="middle"
+     id="text67"
+     style="font-style:italic;font-size:20px;font-family:Georgia, serif;fill:#edf2ef">V = U · (B + 2U)</text>
+  <text
+     x="388.58243"
+     y="323.04214"
+     text-anchor="middle"
+     id="text68"
+     style="font-style:italic;font-size:20px;font-family:Georgia, serif;fill:#edf2ef">P = 3/20 B + 2U + V</text>
+  <text
+     x="361.67111"
+     y="353.25623"
+     text-anchor="middle"
+     id="text69"
+     style="font-style:italic;font-size:20px;font-family:Georgia, serif;fill:#edf2ef">Q = 11/40 B - 1/8 U + 1/4 V</text>
+  <text
+     x="615.44788"
+     y="336.47946"
+     text-anchor="middle"
+     id="text70"
+     style="font-style:italic;font-size:20px;font-family:Georgia, serif;fill:#edf2ef">W = P · Q</text>
+  <g
+     transform="translate(265.44787,502.47945)"
+     id="g77"
+     style="font-style:italic;font-size:20px;font-family:Georgia, serif;fill:#edf2ef">
+    <text
+       x="0"
+       y="0"
+       id="text71">T<tspan
+   font-size="14px"
+   baseline-shift="sub"
+   id="tspan70">9</tspan>(B) = W + I + B +</text>
+    <!-- Stacked Fraction 767/800 -->
+    <g
+       transform="translate(170,-5)"
+       font-size="16px"
+       font-style="normal"
+       font-family="'Segoe UI', sans-serif"
+       id="g73">
+      <text
+         x="18"
+         y="-7"
+         text-anchor="middle"
+         id="text72">767</text>
+      <line
+         x1="0"
+         y1="-2"
+         x2="36"
+         y2="-2"
+         stroke="#edf2ef"
+         stroke-width="2"
+         id="line72" />
+      <text
+         x="18"
+         y="15"
+         text-anchor="middle"
+         id="text73">800</text>
+    </g>
+    <text
+       x="215"
+       y="0"
+       id="text74">U +</text>
+    <!-- Stacked Fraction 15/32 -->
+    <g
+       transform="translate(255,-5)"
+       font-size="16px"
+       font-style="normal"
+       font-family="'Segoe UI', sans-serif"
+       id="g76">
+      <text
+         x="12"
+         y="-7"
+         text-anchor="middle"
+         id="text75">15</text>
+      <line
+         x1="0"
+         y1="-2"
+         x2="24"
+         y2="-2"
+         stroke="#edf2ef"
+         stroke-width="2"
+         id="line75" />
+      <text
+         x="12"
+         y="15"
+         text-anchor="middle"
+         id="text76">32</text>
+    </g>
+    <text
+       x="290"
+       y="0"
+       id="text77">V</text>
+  </g>
+  <rect
+     x="345.44788"
+     y="19.479448"
+     width="160"
+     height="30"
+     rx="15"
+     id="rect78"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#f97068;filter:url(#shadow)" />
+  <polygon
+     points="450,80 460,60 440,60 "
+     id="polygon78"
+     transform="translate(-14.55214,-10.520549)"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#f97068;filter:url(#shadow)" />
+  <text
+     x="425.44788"
+     y="39.47945"
+     font-size="12px"
+     font-weight="bold"
+     fill="#212738"
+     text-anchor="middle"
+     font-family="'Segoe UI', sans-serif"
+     id="text78"
+     style="filter:url(#shadow)">GENERATES B² TERM</text>
+  <rect
+     x="505.44791"
+     y="109.47944"
+     width="180"
+     height="30"
+     rx="15"
+     id="rect79"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#f97068;filter:url(#shadow)" />
+  <polygon
+     points="520,170 540,150 530,150 "
+     id="polygon79"
+     transform="translate(-14.55214,-10.520549)"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#f97068;filter:url(#shadow)" />
+  <text
+     x="595.44788"
+     y="129.47945"
+     font-size="12px"
+     font-weight="bold"
+     fill="#212738"
+     text-anchor="middle"
+     font-family="'Segoe UI', sans-serif"
+     id="text79"
+     style="filter:url(#shadow)">GENERATES B³, 2B⁴ TERMS</text>
+  <rect
+     x="515.44788"
+     y="229.47945"
+     width="180"
+     height="30"
+     rx="15"
+     id="rect80"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#f97068;filter:url(#shadow)" />
+  <polygon
+     points="700,290 690,270 680,270 "
+     id="polygon80"
+     transform="translate(-14.55214,-10.520549)"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#f97068;filter:url(#shadow)" />
+  <text
+     x="605.44788"
+     y="249.47945"
+     font-size="12px"
+     font-weight="bold"
+     fill="#212738"
+     text-anchor="middle"
+     font-family="'Segoe UI', sans-serif"
+     id="text80"
+     style="filter:url(#shadow)">FIXES B⁵, B⁶, B⁷, B⁸ TERMS</text>
+  <g
+     fill="#d1d646"
+     id="g83"
+     transform="matrix(0.91387814,0,0,0.82943653,61.173751,53.918691)"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+    <text
+       x="510"
+       y="600"
+       font-size="13px"
+       font-weight="bold"
+       text-anchor="middle"
+       letter-spacing="0.5"
+       id="text81">LOW-DEGREE CORRECTION</text>
+    <!-- Lines pointing to fractions -->
+    <g
+       stroke="#d1d646"
+       stroke-width="2"
+       marker-end="url(#arrow-yellow)"
+       id="g82">
+      <path
+         d="M 480,585 460,545"
+         id="path81" />
+      <path
+         d="m 540,585 15,-40"
+         id="path82" />
+    </g>
+  </g>
+  <g
+     id="g105"
+     transform="matrix(0.72881633,0,0,0.93485342,208.98231,8.5555213)">
+    <rect
+       x="802.41644"
+       y="65.169495"
+       width="312.50766"
+       height="37.553516"
+       fill="#57c4e5"
+       rx="3.3784609"
+       clip-path="inset(0 0 0 0 round 6px 6px 0 0)"
+       id="rect84"
+       style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;stroke-width:0.890481" />
+    <text
+       x="969.06781"
+       y="90.169495"
+       font-size="16px"
+       font-weight="bold"
+       fill="#212738"
+       text-anchor="middle"
+       letter-spacing="0.5"
+       id="text84"
+       style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif">SPECIFICATIONS &amp; COST ANALYSIS</text>
+  </g>
+  <g
+     font-size="14px"
+     transform="translate(795.44787,139.47944)"
+     id="g96"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#edf2ef">
+    <text
+       y="0"
+       id="text85"><tspan
+         font-weight="bold"
+         fill="#57c4e5"
+         id="tspan84">KERNEL PURPOSE:</tspan><tspan
+         id="tspan85">Fast evaluation of</tspan></text>
+    <text
+       y="20"
+       id="text86">truncated Neumann series</text>
+    <text
+       y="55"
+       id="text87"><tspan
+         font-weight="bold"
+         fill="#57c4e5"
+         id="tspan86">GOAL:</tspan><tspan
+         id="tspan87">Achieve degree-doubling lower bound</tspan></text>
+    <text
+       y="90"
+       font-weight="bold"
+       fill="#f97068"
+       font-size="15px"
+       id="text88">PRODUCT COUNT (μ<tspan
+   font-size="11px"
+   baseline-shift="sub"
+   id="tspan88">9</tspan>): 3 products</text>
+    <text
+       y="125"
+       font-weight="bold"
+       fill="#d1d646"
+       font-size="15px"
+       id="text89">UPDATE COST (C(9)): μ<tspan
+   font-size="11px"
+   baseline-shift="sub"
+   id="tspan89">9</tspan> + 2 = 5 products</text>
+    <text
+       y="160"
+       id="text92"><tspan
+         font-weight="bold"
+         fill="#57c4e5"
+         id="tspan90">ASYMPTOTIC COEFFICIENT:</tspan><tspan
+         font-family="Georgia, serif"
+         font-style="italic"
+         id="tspan92">C(9)/log<tspan
+   font-size="10px"
+   baseline-shift="sub"
+   id="tspan91">2</tspan> 9 ≈ 1.58</tspan></text>
+    <text
+       y="195"
+       id="text94"><tspan
+         font-weight="bold"
+         fill="#57c4e5"
+         id="tspan93">BINARY SPLITTING BASELINE:</tspan><tspan
+         id="tspan94">2.00</tspan></text>
+    <text
+       y="230"
+       id="text96"><tspan
+         font-weight="bold"
+         fill="#57c4e5"
+         id="tspan95">IMPROVEMENT:</tspan><tspan
+         id="tspan96">~21% over binary splitting</tspan></text>
+  </g>
+  <line
+     x1="795.44781"
+     y1="394.47946"
+     x2="1075.165"
+     y2="394.47946"
+     stroke="#edf2ef"
+     stroke-width="0.920667"
+     stroke-dasharray="4, 4"
+     opacity="0.5"
+     id="line96"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#edf2ef" />
+  <text
+     x="795.44781"
+     y="424.47946"
+     font-size="16px"
+     font-weight="bold"
+     fill="#57c4e5"
+     letter-spacing="0.5"
+     id="text97"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif">KEY FEATURES</text>
+  <g
+     font-size="13px"
+     transform="translate(795.44787,454.47945)"
+     id="g103"
+     style="font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;fill:#edf2ef">
+    <text
+       y="0"
+       id="text98"><tspan
+         font-weight="bold"
+         fill="#d1d646"
+         id="tspan97">1. EXACT CONSTRUCTION:</tspan><tspan
+         id="tspan98">First exact</tspan></text>
+    <text
+       y="20"
+       id="text99">construction beyond radix-5.</text>
+    <text
+       y="45"
+       id="text100"><tspan
+         font-weight="bold"
+         fill="#d1d646"
+         id="tspan99">2. RATIONAL COEFFICIENTS:</tspan><tspan
+         id="tspan100">Allows exact</tspan></text>
+    <text
+       y="65"
+       id="text101">computation in rational arithmetic.</text>
+    <text
+       y="90"
+       id="text102"><tspan
+         font-weight="bold"
+         fill="#d1d646"
+         id="tspan101">3. OPTIMAL LOWER BOUND:</tspan><tspan
+         id="tspan102">Reaches the lower</tspan></text>
+    <text
+       y="110"
+       id="text103">bound of 3 products for a degree-8 polynomial.</text>
+  </g>
+  <text
+     xml:space="preserve"
+     style="fill:#edf2ef;fill-opacity:1;stroke:#edf2ef;stroke-opacity:1"
+     x="749.93201"
+     y="587.59045"
+     id="text105"><tspan
+       sodipodi:role="line"
+       id="tspan105"
+       x="749.93201"
+       y="587.59045"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">https://arxiv.org/abs/2602.11843</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#edf2ef;fill-opacity:1;stroke:#edf2ef;stroke-opacity:1"
+     x="7.1832552"
+     y="587.59045"
+     id="text106"><tspan
+       sodipodi:role="line"
+       id="tspan106"
+       x="7.1832552"
+       y="587.59045">Fast Evaluation of Truncated Neumann Series by Low-Product Radix Kernels, Piyush Sao</tspan></text>
+</svg>

@@ -72,6 +72,15 @@ library.
 - error-map and residual-analysis helpers for deeper inspection,
 - and beginner-oriented tutorials in both GitHub Pages and Colab form.
 
+### Exact Radix-9 Circuit
+
+The library ships the exact radix-9 construction as an explicit low-product
+circuit rather than as a black-box polynomial-evaluation routine.
+
+<p align="center">
+  <img src="docs/_static/radix9-circuit.svg" alt="Radix-9 circuit used by the exact kernel implementation" width="900">
+</p>
+
 ### Kernel Catalog
 
 | Method | Radix | Kernel products `mu` | Full-step products `mu + 2` | `(mu + 2)/log2(radix)` | Status |
