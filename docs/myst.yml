@@ -25,3 +25,7 @@ site:
   template: book-theme
   options:
     folders: true
+    logo_text: neumann-kernels
+  parts:
+    primary_sidebar_footer: |
+      [neumanOpt on GitHub](https://github.com/piyush314/neumanOpt)
