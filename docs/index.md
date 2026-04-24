@@ -20,6 +20,7 @@ matrix-product count needed to reach large truncation degrees.
 - It exposes a simple cost model for choosing a radix at a target degree.
 - It includes beginner tutorials that explain the object, the certificates, and
   the benefit plot in an order that a first-time reader can follow.
+- It publishes the research poster with browser and print-ready views.
 
 ## Benefit At A Glance
 
@@ -43,6 +44,7 @@ pytest -q tests
 - [Certified kernels tutorial](tutorials/02_certified_kernels.ipynb)
 - [Cost model walkthrough](tutorials/03_cost_model_and_benefit_plot.ipynb)
 - [Companion paper](paper.md)
+- [Research poster](poster.md)
 
 ## Run In Colab
 

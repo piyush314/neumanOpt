@@ -1,0 +1,1456 @@
+Fast Evaluation of Truncated Neumann Series (February 2026), 1–15
+RESEARCH PREPRINT
+Fast Evaluation of Truncated Neumann Series
+by Low-Product Radix Kernels
+Piyush Sao
+Oak Ridge National Laboratory, Oak Ridge, TN, USA
+Abstract
+Truncated Neumann series Sk (A) = I +A+· · ·+Ak−1 are a standard route to approximate inverses and polynomial preconditioners,
+but high-degree truncations remain expensive in dense linear algebra because matrix-matrix products dominate the cost. Classical
+splitting methods reduce the work to O(log k), so further progress depends on finding better short product formulas for the
+geometric block I + B + · · · + Bm−1. Beyond the known radix-5 case, explicit higher-radix kernels were unavailable, and
+approximate kernels lacked a rigorous iterative framework.
+We make three contributions. First, we derive an exact radix-9 kernel that evaluates I + B + · · · + B8 in three matrix products,
+giving the first exact construction beyond radix 5. Second, for radices 15 and 24 we obtain certified approximate kernels whose
+low-degree coefficients are exact and whose spillover is rigorously bounded. Third, we develop a residual-based radix-kernel
+framework that shows how to use these approximate kernels repeatedly without losing control of the error: it gives explicit
+conditions under which the iteration converges and the residual decays, including for nonnormal matrices.
+Under the dense-matrix GEMM-count model, the new kernels reduce the asymptotic matrix-product count by roughly one
+quarter relative to repeated squaring. Theory-driven experiments validate the predicted stability thresholds, illustrate the
+behavior on normal and nonnormal examples, and confirm the expected reduction in matrix products.
+Keywords: Neumann series; matrix polynomial; radix kernel; matrix multiplication; computational complexity
+1. Introduction
+The truncated Neumann series is a core object in numer-
+ical linear algebra. For a matrix A with spectral radius
+ρ(A) < 1, it is defined by
+Sk (A) =
+k−1	∑︁
+j=0
+Aj = I + A + A2 + · · · + Ak−1. (1)
+As k → ∞, Sk (A) converges to (I − A)−1, so finite trun-
+cations give practical approximate inverses. These ap-
+proximations appear in polynomial preconditioning [1,
+2], resolvent approximation [3], log-determinant estima-
+tion [4], and massive MIMO signal detection [5]. In dense
+problems, the dominant cost is matrix-matrix multipli-
+cation (GEMM), so reducing product count is the main
+efficiency goal.
+This manuscript has been authored by UT-Battelle, LLC under Con-
+tract No. DE-AC05-00OR22725 with the U.S. Department of En-
+ergy. The publisher, by accepting the article for publication, acknowl-
+edges that the United States Government retains a non-exclusive,
+paid-up, irrevocable, world-wide license to publish or reproduce
+the published form of this manuscript, or allow others to do so,
+for United States Government purposes. The Department of En-
+ergy will provide public access to these results of federally spon-
+sored research in accordance with the DOE Public Access Plan
+(http://energy.gov/downloads/doe-public-access-plan).
+Existing splitting methods already reduce the naive k−
+1 products to O(log k) [6]. Binary splitting (repeated squar-
+ing) uses 2 log2 k products. Hybrid radix-{2, 3} schemes [7]
+lower the constant only slightly, to about 1.9 log2 k. Thus
+asymptotic order is no longer the bottleneck; the leading
+coefficient is.
+We therefore adopt dense-matrix GEMM count as a
+surrogate complexity model. The paper optimizes matrix-
+product counts rather than wall-clock time, and the nu-
+merical section is designed to validate the resulting coef-
+ficient, product-count, and stability consequences of the
+constructions rather than to serve as an application-scale
+performance study.
+Improving that coefficient therefore requires better
+radix kernels. Let Tm (B) = I + B + · · · + Bm−1 and let μm
+denote the minimum number of products to evaluate Tm.
+The decomposition
+Smn (A) = Sn (A) · Tm (An). (2)
+shows that one radix-m update costs C(m) = μm + 2 prod-
+ucts: μm for the kernel, one for concatenation, and one
+for updating the next power. Hence the asymptotic coef-
+ficient is C(m)/log2 m. Each product can at most double
+polynomial degree, so μm ≥ ⌈log2 (m − 1)⌉. This lower
+bound gives μ9 ≥ 3 and μ15 ≥ 4, which suggests that
+
+-- 1 of 15 --
+
+2 Piyush Sao
+higher-radix kernels could improve constants if such ker-
+nels exist. Gustafsson et al. [5] achieved μ5 = 2 for radix
+5, but explicit constructions beyond radix 5 were miss-
+ing. This leaves two linked questions: can radix 9 reach its
+lower bound exactly, and can higher-radix kernels remain
+useful when they are only approximate?
+We answer these questions with four contributions.
+We construct an exact radix-9 kernel with μ9 = 3 and ratio-
+nal coefficients (Theorem 4.1), giving 5 log9 k = 1.58 log2 k
+products. This is the first exact construction beyond radix
+5 and gives a 21% improvement over binary splitting. For
+radices 15 and 24, we combine numerical discovery with
+interval certification to obtain prefix-exact higher-radix
+kernels with controlled spillover. We develop a residual-
+based general radix-kernel framework that accommodates
+spillover while preserving coefficient (μm + 2)/log2 m. We
+prove matrix-level stability bounds for that framework,
+including normal, numerical-range, and pseudospectral
+corollaries, and validate them numerically. Within this
+framework, radix 15 reaches 6/log2 15 ≈ 1.54 and radix
+24 reaches 7/log2 24 ≈ 1.53, the smallest asymptotic coeffi-
+cients achieved by the constructions in this paper.
+The paper proceeds as follows. Section 2 reviews
+background and the series-specific prior work. Section 3
+places the kernel viewpoint in the broader polynomial-
+evaluation literature. Section 4 presents the radix-9 con-
+struction. Section 5 separates numerical search from certi-
+fied approximate higher-radix kernels. Section 6 develops
+the general framework and its cost analysis. Section 7
+develops matrix-level stability theorems, and Section 8
+validates those theorems numerically while comparing
+product counts.
+2. Background
+We review existing methods and show that naive kernel
+computation is their main limitation. Given A ∈ Rd×d with
+ρ(A) < 1, define the truncated Neumann series as in (1):
+Sk (A) =
+k−1	∑︁
+j=0
+Aj = I + A + A2 + · · · + Ak−1. (3)
+We measure cost by counting matrix products (GEMMs),
+which dominate when d ≳ 100 for dense matrices.
+2.1 Splitting Methods
+Several radix-based schemes exist, differing in how many
+terms they add per step.
+• Naive evaluation. The naive approach accumulates
+powers I, A, A2, . . ., requiring k − 1 matrix products—
+prohibitive for large k.
+• Radix-m splitting. Faster algorithms use the factoriza-
+tion Smn (A) = Sn (A) · (I + An + · · · + A(m−1)n). A radix-m
+scheme iterates this identity. Each step computes:
+– powers A2n, . . . , A(m−1)n from An (m − 2 products),
+– the product Sn · (I + An + · · · + A(m−1)n) (1 product),
+– and Amn = A(m−1)n · An (1 product).
+The naive cost per step is C(m) = m products, giving
+coefficient m/log2 m.
+• Binary splitting. For m = 2, the identity simplifies to
+S2n = Sn (I + An), using only 2 products per step [8, 6]:
+(i) A2n = An · An; (ii) S2n = Sn · (I + An). Total: 2 log2 k
+products.
+• Ternary splitting. For m = 3, S3n = Sn (I + An + A2n):
+(i) A2n = An · An; (ii) A3n = A2n · An; (iii) S3n = Sn · (I + An +
+A2n). Total: 3 log3 k ≈ 1.89 log2 k products.
+Optimal radix for naive splitting. The coefficient C(m)/log2 m
+equals m/log2 m, minimized at m = e ≈ 2.718; thus m = 3 is
+optimal among integers:
+Radix m Cost C(m) Coefficient C(m)/log2 m
+2 2 2/log2 2 = 2.00
+3 3 3/log2 3 ≈ 1.89
+4 4 4/log2 4 = 2.00
+5 5 5/log2 5 ≈ 2.15
+9 9 9/log2 9 ≈ 2.84
+15 15 15/log2 15 ≈ 3.84
+24 24 24/log2 24 ≈ 5.23
+Thus ternary has the best coefficient among pure radix
+methods. Dimitrov and Cooklev [7] extended this to
+hybrid radix-{2, 3} methods for arbitrary k, achieving
+coefficient ≈ 1.9. These mixed {2, 3} strategies are near-
+optimal, but only with naive kernel computation.
+2.2 Radix Kernels
+The splitting methods above compute the partial sum
+Tm (B) = I + B + · · · + Bm−1 naively, requiring m − 2 products
+for powers B2, . . . , Bm−1. We call Tm the kernel. If the kernel
+cost μm grew only logarithmically in m, the coefficient
+(μm + 2)/log2 m could fall below 1.89. Two identities make
+this possible:
+• Block concatenation. Smn (A) = Sn (A) · Tm (An) for any
+m, n ≥ 1, verified by expanding both sums.
+• Telescoping.
+Tm (B)(I − B) = I − Bm (4)
+This geometric-series identity extracts Bm from the ker-
+nel without extra products.
+
+-- 2 of 15 --
+
+Fast Evaluation of Truncated Neumann Series 3
+Cost model. Let μm denote the minimum number of
+products to compute Tm (B). A radix-m update (Sn, An) →
+(Smn, Amn) uses:
+• μm products for the kernel,
+• 1 product for telescoping: I − Amn = Tm (An)(I − An),
+• 1 product for concatenation: Smn = Sn · Tm (An).
+The total is C(m) = μm + 2, giving coefficient C(m)/log2 m.
+Later, Sections 6 and 6.4 replace the exact telescoping/power-
+update product with residual recomputation for approx-
+imate kernels; the bookkeeping changes, but the total
+remains μm + 2.
+Lower bound. Since each product at most doubles poly-
+nomial degree, p products starting from {I, B} reach de-
+gree at most 2p. Because Tm has degree m − 1, evaluating
+it requires at least ⌈log2 (m − 1)⌉ products. In particular,
+μ5 ≥ 2 and μ9 ≥ 3. Can these bounds be achieved?
+2.3 Prior Work: Quinary (Radix-5) Kernel
+For radix-5, the answer is yes. Gustafsson et al. [5] achieved
+μ5 = 2 with the following construction: (i) U := B2;
+(ii) V := U (B + U) = B3 + B4; (iii) T5 (B) := I + B + U + V.
+Direct verification confirms T5 (B) = I + B + B2 + B3 + B4.
+With μ5 = 2, a quinary update costs C(5) = 4 products,
+giving coefficient 4/log2 5 ≈ 1.72.
+Open questions. The quinary kernel reduces the coef-
+ficient, but gaps remain. First, no radix-9 construction
+exists, though the degree-doubling bound permits μ9 = 3,
+giving coefficient 5/log2 9 ≈ 1.58. Second, it is unknown
+whether exact rational kernels exist for higher radices such
+as m = 15. Approximate constructions may have nonzero
+spillover into degrees ≥ m, breaking the telescoping iden-
+tity (4) and preventing exact extraction of Bm. No frame-
+work exists for such kernels in series algorithms. These
+gaps set the agenda for the rest of the paper. Section 3
+places them in the broader matrix-polynomial-evaluation
+literature. Sections 4–6 then develop exact and approxi-
+mate higher-radix kernels, and the later sections analyze
+their stability and numerical performance.
+3. Related Work
+The background above covered splitting methods specific
+to truncated Neumann series. A second line of context
+comes from general matrix-polynomial evaluation, where
+special structure can justify product counts that generic
+schemes cannot reach.
+Within Neumann-series evaluation itself, Westreich [8]
+obtained 3 log2 k products by binary splitting. Lei and
+Nakamura [6] reduced this to 2 log2 k − 1 by reusing inter-
+mediate computations. Dimitrov and Cooklev [7] then
+introduced hybrid radix-{2, 3} methods and, under naive
+kernel evaluation, argued that higher radices offered no
+practical improvement. Matsumoto, Takagi, and Tak-
+agi [9] later showed that higher radices can improve the
+leading coefficient, but they did not provide explicit ker-
+nel circuits or a framework for deciding which radices are
+useful.
+For general matrix polynomials, the Paterson–Stockmeyer
+(PS) method [10] achieves O(√n) products for degree-n
+evaluation, and Fasi and Higham [11] proved optimality
+within the PS scheme. Composition methods can do bet-
+ter on special polynomial families: Sastre and Ibáñez [12]
+achieved degree 15 in 4 products, exceeding the degree 9
+reachable by PS with 4 products. That comparison is not
+directly transferable to Neumann kernels. The radix-15
+Neumann kernel T15 (B) = I + B + · · · + B14 has degree 14
+and fixed unit coefficients, whereas the Sastre–Ibáñez con-
+structions exploit the more flexible coefficient structure
+of exponential-family polynomials. For Neumann ker-
+nels, the uniform-coefficient constraint leaves much less
+freedom in the factorization, so a degree-15 result for a
+different polynomial family does not imply a 4-product
+construction for T15.
+Generic schemes such as Horner evaluation or baby-
+step/giant-step reorganize arbitrary polynomial evalua-
+tion, but they do not exploit the fixed unit-coefficient
+geometric structure of Tm (B). For that reason they pro-
+vide useful baselines for general matrix polynomials, yet
+they do not by themselves explain the low-product kernel
+circuits sought here. Likewise, Padé-type approximate
+inverses belong to a rational-approximation framework
+with different approximation classes and solve costs, so
+they lie outside the polynomial-kernel scope of this paper.
+Our radix kernels import that composition viewpoint
+into the geometric-series setting. In particular, they ex-
+tend Gustafsson et al.’s quinary construction [5] to higher
+radices, and the accompanying kernel-to-update frame-
+work shows how better kernel circuits translate directly
+into faster Neumann-series algorithms.
+4. Radix-9 Kernel
+The quinary kernel [5] achieves coefficient 4/log2 5 ≈ 1.72.
+The next natural target is radix 9. To improve on 1.72, a
+radix-9 update must use at most 5 products. Since C(9) =
+μ9 + 2, this means μ9 ≤ 3. The degree-doubling bound
+already gives μ9 ≥ 3, so a 3-product kernel would be
+optimal.
+
+-- 3 of 15 --
+
+4 Piyush Sao
+Derivation strategy. To hit this bound, we build the
+third product around U = B2 and V = U (B + 2U) = B3 +
+2B4, which are available after two products. We then
+seek one additional product P · Q, with P and Q linear
+combinations of {B, U, V }, whose convolution fixes the
+high-degree terms B5, . . . , B8. The remaining degrees
+B2, B3, B4 can then be corrected using only additions of
+U and V. Matching the target coefficients gives an 8 × 8
+linear system for the coefficients of P and Q.
+Theorem 4.1 (Radix-9 kernel in 3 products). The kernel
+T9 (B) = I + B + · · · + B8 is computed by:
+1. U := B2 (MM1)
+2. V := U (B + 2U) = B3 + 2B4 (MM2)
+3. P := 3
+20 B + 2U + V, Q := 11
+40 B − 1
+8 U + 1
+4 V
+4. W := P · Q (MM3)
+5. T9 (B) := W + I + B + 767
+800 U + 15
+32 V
+One carefully chosen product P · Q simultaneously
+generates four high-degree terms (B5 through B8), while
+the low-degree corrections adjust B2–B4 using only addi-
+tions.
+Proof. Let p = [ 3
+20 , 2, 1, 2] and q = [ 11
+40 , − 1
+8 , 1
+4 , 1
+2 ] be the
+coefficients of P and Q in powers B1, B2, B3, B4. Expanding
+P·Q shows that the coefficients of B5 through B8 are exactly
+1. The same expansion gives coefficients 33
+800 , 17
+32 , and 1
+16 on
+B2, B3, and B4. Adding 767
+800 U + 15
+32 V raises those coefficients
+to 1, so the resulting polynomial is I + B + · · · + B8. □
+Remark 4.2 (Rational coefficients). The radix-9 kernel
+uses only rational coefficients (fractions with denomina-
+tors dividing 800), enabling exact computation in rational
+or fixed-point arithmetic. This contrasts with radix-15
+(Section 5), where numerical optimization yields only real
+coefficients with nonzero “spillover” into higher-degree
+terms. The transition from exact rational solutions (radix-
+5, radix-9) to approximate real solutions (radix-15) sug-
+gests that any exact higher-radix construction, if it exists,
+is substantially harder to uncover.
+With μ9 = 3, the update costs C(9) = 5 products.
+Iterating t = log9 k times gives Sk (A) in 5 log9 k ≈ 1.58 log2 k
+products—a 21% improvement over binary and 8% over
+quinary.
+In summary, the radix-9 kernel achieves the smallest
+asymptotic coefficient among the exact constructions dis-
+cussed here, at the cost of one additional matrix product
+per update. The next section explores whether higher
+radices can improve further.
+5. Certified Approximate Higher-Radix
+Kernels
+The radix-9 kernel is exact and lower-bound optimal. For
+higher radices, the same degree-counting argument still
+points to useful coefficients—μ15 ≥ 4 and μ24 ≥ 5—but
+it does not tell us whether exact kernels exist or how
+approximate ones should be used. This section therefore
+separates two logically distinct tasks: numerical discovery of
+promising circuits, and certified existence of nearby prefix-
+exact kernels. Keeping those tasks separate prevents an
+optimizer output from being mistaken for a theorem.
+5.1 Search Ansatz
+We use the bilinear chained-product ansatz already im-
+plicit in the exact radix-9 construction. Fix P1 = B2. For a
+K-product kernel, define basis sets
+B1 = {I, B, P1 }, Bi+1 = Bi ∪ {Pi },
+and for i = 2, . . . , K write
+Li =∑︁
+X ∈ Bi
+ℓi,X X, Ri =∑︁
+X ∈ Bi
+ri,X X, (5)
+Pi = LiRi.
+The final kernel is
+f (B) = I + γ1B + γ2P1 + · · · + γK PK−1 + PK . (6)
+For radix 15 we use K = 4, giving 28 parameters. For
+radix 24 we use K = 5, giving 41 parameters.
+5.2 Numerical Discovery
+Let [f (B)]j denote the coefficient of Bj. The discovery
+objective is the prefix residual
+Φm (θ) =
+m−1	∑︁
+j=0
+[fθ (B)]j − 12,
+where θ collects all ansatz parameters. We minimize Φm
+by multi-start local optimization. This stage is deliberately
+heuristic: it identifies promising approximate solutions but
+does not by itself justify theorem-grade claims.
+For radix 15 the best 4-product approximate solu-
+tion drives the prefix error below 5 × 10−16 while leaving
+spillover at degrees 15 and 16. For radix 24 we refine
+the active prefix subsystem to a 16-decimal circuit be-
+fore fixing the final approximate solution printed in the
+appendix.
+
+-- 4 of 15 --
+
+Fast Evaluation of Truncated Neumann Series 5
+5.3 Certified Approximate Kernels
+The next step resolves the main expectation created by
+the search: each promising approximate solution is con-
+verted into a certified kernel by solving the prefix equations
+exactly in a nearby parameter box. Write
+Fm (θ) = ([fθ]0 − 1, . . . , [fθ]m−1 − 1).
+At each approximate solution θ0 we compute DFm (θ0),
+select a well-conditioned square subsystem, and apply a
+Krawczyk inclusion test on a small nearby box in those
+variables while holding the remaining variables fixed.
+Theorem 5.1 (Computer-assisted certified radix-15 and
+radix-24 kernels). There exists a certified radix-15 kernel in
+the 4-product bilinear ansatz and a certified radix-24 kernel
+in the 5-product bilinear ansatz such that the prefix equations
+F15 (θ) = 0 and F24 (θ) = 0 hold exactly. The corresponding
+verified parameter boxes have maximum coordinate radii below
+4.5 × 10−14 and 6.2 × 10−14, respectively. Evaluating the kernels
+and their error maps over those boxes yields interval enclosures
+for every displayed spillover coefficient.
+Proof. This is a computer-assisted proof. For each radix,
+the displayed approximate solution determines a square
+subsystem of the prefix equations whose Krawczyk op-
+erator is verified to map a nearby parameter box strictly
+into itself. The Krawczyk inclusion theorem therefore
+yields an exact root of the full prefix system in that box.
+Interval evaluation of the corresponding kernel and er-
+ror map over the same box then gives the stated spillover
+enclosures. □
+The certified Krawczyk subsystem has 15 active vari-
+ables for radix 15 and 24 active variables for radix 24.
+The corresponding condition estimates are 3.83 × 101 and
+2.38 × 102, and the certified maximum box radii are 4.5 ×
+10−14 and 6.2 × 10−14. The full active sets, interval coeffi-
+cients, and radii are recorded in the supplementary cer-
+tification files certified_coeffs_radix15.json and
+certified_coeffs_radix24.json.
+For radix 15, the certified error map is centered at
+E15 (z) = 0.81479100 z15
+− 0.27315103 z16
++ 0.45836003 z17,
+with interval radii below 2.1 × 10−13. For radix 24, the
+certified error map is centered at
+E24 (z) = 0.35517021 z24 + 0.43096456 z25
++ 0.16540498 z26 − 0.13946877 z27
+− 0.24168001 z28 − 0.10159049 z29
++ 0.10987210 z30 + 0.20681982 z31
++ 0.15756340 z32 + 0.05694420 z33,
+with interval radii below 2.8 × 10−12. These certified mid-
+point coefficients are used in Sections 7 and 8; the radix-24
+appendix table prints the corresponding 16-decimal cir-
+cuit.
+5.4 Local Structure
+Certification also yields local geometric information about
+the solution set, clarifying why approximate kernels are
+natural in these ansätze. For the certified radix-15 ker-
+nel, the prefix Jacobian has full row rank 15 in the 28-
+parameter ansatz, so the local prefix-exact set is a smooth
+manifold of dimension 28 − 15 = 13. For radix 24, the
+corresponding dimension is 41 − 24 = 17. Appending the
+leading spillover coefficient as one more constraint raises
+the rank by one in both cases, so the local dimension drops
+by one.
+This is still only a local result: it explains why pre-
+fix exactness plus small spillover is a natural optimization
+target near the certified solutions, but it does not prove
+global nonexistence of exact higher-radix kernels. The
+corresponding Jacobian-rank statement is recorded in
+Appendix 5.
+The remainder of the paper treats these certified ap-
+proximate kernels as mathematical objects rather than op-
+timizer outputs. Section 6 shows how spillover is absorbed
+by residual iteration, and Section 7 turns the certified error
+maps into matrix-norm decay bounds.
+6. General Radix-Kernel Framework
+Among the exact kernels developed here, radix 9 has the
+smallest coefficient, 5/log2 9 ≈ 1.58. Higher radices can do
+better in principle. A 4-product radix-15 kernel would
+drop the coefficient to 6/log2 15 ≈ 1.54, and a 5-product
+radix-24 kernel to 7/log2 24 ≈ 1.53. Our certified higher-
+radix kernels reach those coefficients, but they do so with
+nonzero spillover at degrees ≥ 15, so the standard exact up-
+date no longer applies. The issue is therefore not whether
+higher-radix kernels help, but how to use approximate
+ones without giving up the asymptotic gain.
+Spillover invalidates the telescoping identity Tm (An)(I−
+An) = I − Amn that normally lets us extract Amn. With
+spillover the identity fails and the power cannot be recov-
+ered. Hensel lifting (Y′ = Y (2I − MY)) sidesteps power
+extraction, but its coefficient is 2.00—no better than binary
+splitting. We need an iteration that keeps the 1.54–1.53
+promise of higher-radix kernels without exact power ex-
+traction.
+This section resolves both obstacles by applying the
+kernel to the residual rather than to powers of A, eliminat-
+ing the need for power extraction. It proceeds in three
+
+-- 5 of 15 --
+
+6 Piyush Sao
+stages: formalize approximate kernels, analyze their com-
+position as polynomials, then lift to matrices.
+6.1 Approximate Radix Kernels
+The following definition makes precise what “approximate
+kernel” means and how its error behaves. Although the
+kernels constructed here have real coefficients, the residual
+iteration and functional calculus are most naturally stated
+over C.
+Definition 6.1 (Approximate radix-m kernel). A poly-
+nomial f ∈ C[z] is an approximate radix-m kernel if (1 −
+z) f (z) = 1+O(zm). Equivalently, f (z) ≡ (1−z)−1 (mod zm).
+The terms of degree ≥ m in f are called spillover. When
+the spillover is zero, the kernel is exact and coincides with
+Tm (z).
+Definition 6.2 (Error map). Given an approximate radix-
+m kernel f , define E(z) = 1 − (1 − z) f (z).
+Lemma 6.3 (Error order). If f (z) = Í ajzj is an approxi-
+mate radix-m kernel and c := 1 − am, then
+E(z) = c zm + O(zm+1).
+If f is exact, am = 0, so c = 1 and E(z) = zm.
+Proof. Since (1 − z)f (z) = 1 + O(zm), the degree-m term is
+(1 − z)f (z) = 1 + (am − am−1) zm + · · · = 1 + (am − 1) zm + · · · ,
+so E(z) = 1 − (1 − z)f (z) = (1 − am) zm + O(zm+1). □
+6.2 General Radix-Kernel Summation
+Applying the kernel to its own error, f (E(z)), corrects the
+residual left by f (z).
+Definition 6.4 (General radix-kernel summation). Given
+an approximate radix-m kernel f with error map E, one
+lift of the general radix-kernel summation produces
+f (z) · f 1 − (1 − z)f (z) = f (z) · f (E(z)). (7)
+Lemma 6.5 (Composition identity). For any approximate
+radix-m kernel f with error map E:
+E(E(z)) = 1 − (1 − z) f (z) f (E(z)). (8)
+Proof. By definition, 1 − E(z) = (1 − z) f (z). Applying the
+definition of E at the point E(z):
+E(E(z)) = 1 − (1 − E(z)) f (E(z)) = 1 − (1 − z) f (z) f (E(z)).
+□
+Lemma 6.6 (Prefix growth). If f is an approximate radix-m
+kernel, then f (z) · f (E(z)) matches the first m2 coefficients of
+(1 − z)−1.
+This is the core composition mechanism behind the
+framework: one lift upgrades an m-term exact prefix to
+an m2-term exact prefix, and repeated use of the lemma
+is what drives the mn growth used later in the cost and
+stability analysis.
+Proof. By Lemma 6.5, (1−z) f (z) f (E(z)) = 1−E(E(z)). By
+Lemma 6.3, E(z) = O(zm), so E(E(z)) = O(zm2
+). Hence
+(1 − z) f (z) f (E(z)) = 1 − O(zm2
+), and f (z) f (E(z)) agrees
+with (1 − z)−1 to order m2 − 1. □
+Lemma 6.7 (Error propagation). Write E[n] for the n-fold
+composition (E[0] (z) = z, E[n+1] = E ◦ E[n] ). Let E(z) =
+c zm + O(zm+1). Then
+E[n] (z) = c(mn −1)/(m−1) zmn
++ O(zmn +1).
+Spillover is harmless to the prefix: regardless of c, it is pushed
+to degree ≥ mn after n steps.
+Proof. E(E(z)) = c (czm)m + · · · = cm+1 zm2
++ · · · . By in-
+duction, E[n] (z) = c1+m+···+mn−1
+zmn
++ · · · = c(mn −1)/(m−1) zmn
++
+· · · . □
+Remark 6.8 (Analytic stability). In floating-point arith-
+metic, the coefficient magnitude matters. When |c| < 1, the
+leading coefficient c(mn −1)/(m−1) decays, bounding the resid-
+ual norm. For the radix-15 kernel (Section 5), [f ]15 ≈ 0.19
+gives c ≈ 0.81 < 1.
+6.3 Matrix Iteration
+This polynomial machinery lifts directly to matrices. Let
+M = I − A. We maintain an approximate inverse Yn ≈ M −1
+and its residual Rn = I − MYn. Starting from Y0 = I and
+R0 = A, each step applies f to the residual:
+Yn+1 = Yn · f (Rn), Rn+1 = I − M Yn+1. (9)
+Lemma 6.9 (General radix-kernel iteration). Under itera-
+tion (9):
+1. Rn = E[n] (A);
+2. Rn = O(Amn
+);
+3. Yn = Ímn −1
+j=0 Aj + O(Amn
+).
+Proof. Base case. R0 = A = E[0] (A). Induction. If Rn =
+E[n] (A), then Rn+1 = I − M Yn f (Rn) = I − (I − Rn) f (Rn) =
+E(Rn) = E[n+1] (A). Parts (2)–(3) follow from E(z) = O(zm)
+and M Yn = I − Rn = I − O(Amn
+). □
+6.4 Cost Analysis
+This gain can be quantified directly and compared against
+prior methods. In the exact framework, one radix step con-
+sists of the kernel, concatenation, and a telescoping/power-
+update product. In the approximate framework (9) , the
+
+-- 6 of 15 --
+
+Fast Evaluation of Truncated Neumann Series 7
+Table 1. Matrix product counts for Sk (A) with k ≥ 10p. Cost per
+step is μm + 2, minus 2 for the trivial first update (Y0 = I) and the
+unnecessary last residual. Radix-24+ uses radix-24 for all steps except
+possibly the last, where a smaller radix may be cheaper.
+Method Coeff. 103 106 109 1012 1015
+Binary [6] 2.00 18 38 58 78 98
+Quinary [5] 1.72 18 34 50 70 86
+Radix-9 1.58 18 33 48 63 78
+Radix-15 1.54 16 34 46 64 76
+Radix-24 1.53 19 33 47 61 75
+Radix-24+ — 14 29 44 59 75
+last operation is instead a residual recomputation. Each
+step still requires μm products for f (Rn), 1 for Yn+1 =
+Yn · f (Rn), and 1 for Rn+1 = I − M Yn+1: total μm + 2 per step.
+Achieving accuracy k = mt requires t = logm k steps:
+(μm + 2) logm k = μm + 2
+log2 m log2 k. (10)
+Corollary 6.10 (Radix-15 and radix-24 coefficients). An
+approximate radix-15 kernel with μ15 = 4 achieves coefficient
+6/log2 15 ≈ 1.54. An approximate radix-24 kernel with μ24 =
+5 achieves coefficient 7/log2 24 ≈ 1.53.
+The certified radix-15 and radix-24 kernels satisfy the
+prefix equations exactly at the parameter level, so the co-
+efficient model applies to the mathematical iteration itself.
+Section 8 then checks that floating-point implementations
+exhibit the predicted mn prefix growth and the expected
+product-count savings.
+Table 1 compares all methods against prior work.
+Under naive kernel computation, higher radices were
+counterproductive and left coefficients at or above 2 log2 k.
+Once low-product kernels are available, the ordering re-
+verses and higher radices become the asymptotically best
+options.
+Since any step can use any available kernel, the opti-
+mal strategy uses radix-24 for all but the final step, where
+a smaller radix may suffice: e.g. for k ≥ 103, the sequence
+(24, 24, 2) gives k = 1152 in just 14 products. At k = 1015,
+this saves 23 products over binary (75 vs 98, a 23% reduc-
+tion).
+The optimization principle: choose m to minimize
+C(m)/log2 m. For our kernels: 4/log2 5 ≈ 1.72 (quinary),
+5/log2 9 ≈ 1.58 (radix-9), 6/log2 15 ≈ 1.54 (radix-15), 7/log2 24 ≈
+1.53 (radix-24). Higher radices help only if kernel cost
+grows sublinearly in log2 m.
+6.5 Special Cases
+The framework recovers known methods as special cases.
+Hensel lifting (m = 2). f (z) = 1 + z, E(z) = z2, μ2 = 0:
+f (Rn) = I + Rn requires no GEMM once Rn is already
+available, so Yn+1 = Yn (I + Rn) = Yn (2I − MYn), coefficient
+2/log2 2 = 2.00.
+Exact radix-m. f = Tm, E(z) = zm, Rn = Amn
+: recovers the
+standard telescoping update.
+The framework resolves both obstacles by applying
+the kernel to the residual, not to powers of A. The cost per
+step is μm + 2—identical to the exact case—and the prefix
+grows as mn regardless of spillover. Hensel lifting and exact
+telescoping emerge as special cases, so the framework
+subsumes all prior methods. With radix-24 it achieves
+coefficient 1.53, the smallest asymptotic coefficient among
+the kernels constructed here. The cost analysis assumes
+convergence; the next section examines when spillover
+preserves it.
+7. Stability Analysis
+Section 6 showed that the residual satisfies Rn = E[n] (A),
+where
+E(z) = 1 − (1 − z)f (z)
+is the kernel error map. Prefix growth alone does not
+imply bounded iterates: once spillover is present, the rele-
+vant question is whether repeated composition of E drives
+residuals to zero on the matrix set of interest. This section
+makes that question quantitative.
+7.1 Error-Map Coefficients
+Let
+f (z) =
+d	∑︁
+j=0
+ajzj, a0 = · · · = am−1 = 1,
+so that the prefix is exact through degree m − 1. Then
+E(z) =
+d+1	∑︁
+j=m
+ejzj, (11)
+with
+em = 1 − am, ej = aj−1 − aj (m < j ≤ d), ed+1 = ad .
+The leading coefficient em is only the first spillover datum;
+all of (11) matters for stability.
+7.2 Scalar Tests
+Define
+qρ := 1
+ρ max
+|z|=ρ |E(z)| = 1
+ρ max
+|z| ≤ρ |E(z)|, ηρ :=
+d+1	∑︁
+j=m
+|ej |ρj−1,
+and
+s0 := 0, sn := 1 + m + · · · + mn−1 = mn − 1
+m − 1 (n ≥ 1).
+
+-- 7 of 15 --
+
+8 Piyush Sao
+Basin test. For a scalar state λn+1 = E(λn), convergence
+requires E[n] (λ) → 0. This is the exact scalar criterion.
+Disk test. If qρ ≤ 1, then the disk |z| ≤ ρ is forward
+invariant. Since E(z) = zmh(z) has a zero of order m at the
+origin, the generalized Schwarz lemma gives
+|E[n] (z)| ≤ ρ qsn
+ρ
+ |z|
+ρ
+mn
+, |z| ≤ ρ. (12)
+Coefficient surrogate. The cheaper quantity ηρ satisfies
+qρ ≤ ηρ. Hence ηρ ≤ 1 is a sufficient, though possibly
+conservative, way to verify the disk test.
+7.3 A Functional-Calculus Theorem
+The scalar bound (12) lifts immediately to any matrix class
+that admits a polynomial functional-calculus estimate.
+Theorem 7.1 (Abstract matrix bound). Let Ω ⊂ C be
+compact, and suppose
+σ(A) ⊂ Ω ⊂ {z : |z| ≤ ρ}, ∥p(A)∥2 ≤ MΩ max
+z∈Ω |p(z)|
+for every polynomial p. Set rΩ := maxz∈Ω |z|. If qρ ≤ 1, then for
+every n ≥ 0,
+∥Rn ∥2 ≤ MΩ ρ qsn
+ρ
+ rΩ
+ρ
+mn
+.
+Consequently,
+∥(I − A)−1 − Yn ∥2
+∥(I − A)−1 ∥2
+≤ MΩ ρ qsn
+ρ
+ rΩ
+ρ
+mn
+.
+Proof. Lemma 6.9 gives Rn = E[n] (A). Applying the as-
+sumed functional-calculus estimate to the polynomial E[n]
+and then using (12) on Ω yields the residual bound. Since
+(I − A)−1 − Yn = (I − A)−1Rn, the relative inverse-error
+estimate follows immediately. □
+Corollary 7.2 (Normal matrices). If A is normal, then
+Theorem 7.1 applies with Ω = σ(A) and MΩ = 1. In particular,
+∥Rn ∥2 ≤ ρ qsn
+ρ
+ ρ(A)
+ρ
+mn
+,
+whenever ρ ≥ ρ(A) and qρ ≤ 1.
+Corollary 7.3 (Numerical-range bound). Let
+W (A) = {x∗Ax : ∥x∥2 = 1}, w(A) = max
+z∈W (A) |z|.
+By Crouzeix and Palencia [13],
+∥p(A)∥2 ≤ CCr max
+z∈W (A) |p(z)|, CCr ≤ 1 + √2.
+Hence, if ρ ≥ w(A) and qρ ≤ 1, then
+∥Rn ∥2 ≤ CCr ρ qsn
+ρ
+ w(A)
+ρ
+mn
+.
+If moreover ρ < 1, then
+∥(I − A)−1 − Yn ∥2 ≤ CCr
+1 − ρ ρ qsn
+ρ
+ w(A)
+ρ
+mn
+.
+Limitations and optional refinement. For the present
+certified kernels, the admissible radii remain below 1:
+ρcert
+q,15 ≈ 0.971, ρcert
+q,24 ≈ 0.984.
+The Crouzeix–Palencia constant is universal and there-
+fore conservative, so tighter matrix-specific functional-
+calculus bounds could enlarge the usable region. The
+pseudospectral estimate below records one optional route
+in that direction, but it is not used in Section 8.
+Proposition 7.4 (Pseudospectral refinement). Let Γε be a
+rectifiable contour enclosing σ(A) such that
+∥(zI − A)−1 ∥2 ≤ ε−1 for all z ∈ Γε,
+and let Lε = len(Γε). Then for every polynomial p,
+∥p(A)∥2 ≤ Lε
+2πε max
+z∈Γε
+|p(z)|.
+If Γε ⊂ {z : |z| ≤ ρ} and rε := maxz∈Γε |z|, then
+∥Rn ∥2 ≤ Lε
+2πε ρ qsn
+ρ
+ rε
+ρ
+mn
+.
+Proof. The contour bound is the standard polynomial func-
+tional calculus on Γε; see, for example, [3, Chapter 17] or
+[14]. The final estimate is another application of Theo-
+rem 7.1. □
+7.4 Certified Radii for Radix 15
+For the certified radix-15 kernel, the error map summa-
+rized in Appendix 4 is centered at
+E15 (z) = 0.81479100 z15
+− 0.27315103 z16
++ 0.45836003 z17.
+Here the coefficient surrogate is essentially sharp:
+η15 (ρ) = 0.81479100 ρ14
++ 0.27315103 ρ15
++ 0.45836003 ρ16.
+The certified coefficient radius is
+ρη,15 = 0.970897959 . . . ,
+and the certified direct circle-test radius is
+ρcert
+q,15 = 0.970699488 . . . .
+At the midpoint coefficients, midpoint circle maximization
+gives the estimated value
+ρest
+q,15 = 0.970897959 . . . ,
+
+-- 8 of 15 --
+
+Fast Evaluation of Truncated Neumann Series 9
+which coincides with ρη,15 to the displayed digits. Thus,
+for practical purposes, the coefficient surrogate is sharp
+for radix 15.
+At w(A) = ρ = 0.95, Corollary 7.3 yields
+∥Rn ∥2 ≤ CCr 0.95 (0.725638) (15n −1)/14,
+so
+∥R2 ∥2 ≲ 1.36 × 10−2, ∥R3 ∥2 ≲ 6.3 × 10−34.
+7.5 Certified Radii for Radix 24
+For the certified radix-24 kernel, the error map is centered
+at
+E24 (z) = 0.35517021 z24 + 0.43096456 z25 + 0.16540498 z26
+− 0.13946877 z27 − 0.24168001 z28 − 0.10159049 z29
++ 0.10987210 z30 + 0.20681982 z31 + 0.15756340 z32
++ 0.05694420 z33.
+The coefficient surrogate certifies
+ρη,24 = 0.974559738 . . . ,
+while the interval-based direct circle test certifies the
+larger radius
+ρcert
+q,24 = 0.984176086 . . . .
+At the midpoint coefficients, midpoint circle maximization
+gives the estimated value
+ρest
+q,24 = 0.984432110 . . . .
+The gap between ρη,24 and ρcert
+q,24 is already visible in the
+certified intervals, so cancellations matter substantially for
+radix 24.
+7.6 Summary
+The error-map viewpoint separates three levels of state-
+ment:
+• exact scalar criterion: E[n] (λ) → 0 for each scalar state
+of interest;
+• certified scalar tests: the direct circle test qρ ≤ 1 or the
+cheaper coefficient surrogate ηρ ≤ 1;
+• matrix-level corollaries: normal, numerical-range,
+and pseudospectral bounds through Theorem 7.1.
+For radix 15, the coefficient surrogate is effectively sharp
+and certifies numerical-range radii near 0.971. For radix
+24, the direct circle test is materially better, certifying
+radii near 0.984 while the coefficient surrogate stops near
+0.975. Section 8 compares these theorem predictions with
+observed matrix residuals.
+0.90 	0.92 	0.94 	0.96 	0.98
+0.4
+0.6
+0.8
+1.0
+1.2
+1.4
+stability test value
+Radix-15
+q certified upper
+q estimated
+0.94 	0.95 	0.96 	0.97 	0.98 	0.99
+Radix-24
+Figure 1. Certified scalar stability curves for the radix-15 and radix-24
+kernels. The plotted data and certified crossing radii are included in
+the supplementary materials.
+8. Numerical Experiments
+The experiments play two roles. First, they validate the
+theorem-driven stability picture from Section 7: the cer-
+tified radii, the gap between ηρ and qρ, and the effect
+of nonnormality on matrix bounds. Second, they con-
+firm that the certified higher-radix kernels still deliver
+the predicted product-count savings in illustrative inverse-
+approximation tests under the dense-matrix GEMM-count
+model.
+Reproducibility. All tables and figures in this section are
+derived from the supplementary certification and valida-
+tion data. All computations use Python with NumPy/SciPy
+and IEEE 754 double precision.
+8.1 Certified Radius Curves
+Figure 1 plots the coefficient surrogate ηρ, the certified
+direct circle test for qρ, and midpoint circle maximization
+for the certified radix-15 and radix-24 kernels. The pic-
+ture matches the theory from Section 7: for radix 15 the
+coefficient surrogate is essentially sharp, whereas for radix
+24 the direct circle test is noticeably better.
+The certified radii are
+ρη,15 = 0.970897959, ρcert
+q,15 = 0.970699488,
+and
+ρη,24 = 0.974559738, ρcert
+q,24 = 0.984176086.
+For radix 24, midpoint circle maximization raises the esti-
+mated crossing to 0.984432110, so the certified direct circle
+test captures most of the available cancellation already.
+8.2 Normal and Nonnormal Validation
+Figure 2 compares actual residual norms with the numerical-
+range bound from Corollary 7.3 on two small families.
+The first family is normal, with diagonal matrices at radii
+just inside the certified threshold. The second family is
+nonnormal, using 2 × 2 upper-triangular matrices with
+
+-- 9 of 15 --
+
+10 Piyush Sao
+0.000 0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040
+superdiagonal
+100
+6 × 10 1
+2 × 100
+R1 2
+Radix-15
+actual
+Crouzeix bound
+0.00 	0.01 	0.02 	0.03 	0.04 	0.05 	0.06 	0.07
+superdiagonal
+100
+R1 2
+Radix-24
+Figure 2. Observed residual norms versus the numerical-range bound
+on normal and nonnormal test families. The bound remains valid
+and becomes looser as nonnormality increases, as expected from the
+Crouzeix factor.
+Table 2. Product counts for Sk (A) at pure powers (binary baseline).
+k Binary Quinary Radix-9 Radix-15 Radix-24 Savings
+125 = 53 14 12 — — — 14%
+625 = 54 20 16 — — — 20%
+81 = 92 14 — 10 — — 29%
+729 = 93 20 — 15 — — 25%
+225 = 152 16 — — 12 — 25%
+3375 = 153 24 — — 18 — 25%
+576 = 242 20 — — — 14 30%
+13824 = 243 28 — — — 21 25%
+fixed diagonal and increasing superdiagonal. These are
+illustrative validation cases for the bounds, not application-
+scale performance tests. The corresponding validation
+data are included in the supplementary materials.
+Two qualitative points stand out. First, the certified
+bounds are conservative but correctly ordered: the actual
+residual decays far below the bound in the normal fam-
+ily, then moves closer to it as the matrix becomes more
+nonnormal. Second, the radius tests are not cosmetic.
+Supplementary scalar tests beyond the certified threshold
+show that crossing the certified boundary materially wors-
+ens the one-step residual even when later compositions
+may still decay for a particular scalar point.
+8.3 Product Counts and Approximate Inversion
+Stability certification matters only if the faster kernels still
+reduce work in the stated cost model, so we close by re-
+turning to the original GEMM-count question. Table 2
+lists the exact matrix-product counts for pure powers. The
+higher-radix certified kernels still deliver the same asymp-
+totic improvements: radix 9 reduces the binary constant
+from 2.00 to 1.58, radix 15 reaches 1.54, and radix 24
+reaches 1.53.
+Figure 3 keeps the original convergence comparison
+on a normal test family, while Figure 4 records the asymp-
+totic coefficients themselves. These figures provide a sec-
+0 	10 	20 	30 	40
+Matrix multiplications
+10 14
+10 12
+10 10
+10 8
+10 6
+10 4
+10 2
+100
+RMS residual
+machine precision
+Binary
+Ternary
+Quinary
+Radix-9
+Radix-15
+Figure 3. Convergence comparison on a normal family. Higher-radix
+methods reach machine precision with fewer matrix products once
+the certified stability conditions hold.
+Binary
+(Lei-Nakamura)
+Ternary 	Hybrid
+{2,3}
+Quinary Radix-9 Radix-15 Radix-24
+0.0
+0.5
+1.0
+1.5
+2.0
+Products per
+ log
+2 k
+2.00
+1.89 	1.90
+1.72
+1.58 	1.54 	1.53
+24% fewer
+products
+Figure 4. Asymptotic coefficients (matrix products per log2 k). Among
+the kernels studied here, the certified radix-24 kernel attains the
+smallest asymptotic coefficient, 1.53.
+ondary layer of evidence: once the certified kernels are
+available and stable on the relevant matrix set, the higher
+radix translates directly into fewer matrix products under
+the adopted cost model.
+Summary. The experiments line up with the theory in
+three layers. The scalar curves explain which radii are cer-
+tified. The normal and nonnormal illustrative matrix tests
+validate the matrix bounds. The remaining convergence
+and product-count plots show that once those stability
+conditions are met, the certified higher-radix kernels re-
+alize the expected 25–30% reduction in matrix products.
+9. Conclusion
+We set out to extend Neumann series evaluation beyond
+the known radix-5 kernel [5], where no higher-radix
+constructions existed and where nonexact higher-radix
+kernels lacked a matrix-level convergence theory. We
+addressed this gap with four linked contributions:
+
+-- 10 of 15 --
+
+Fast Evaluation of Truncated Neumann Series 11
+1. The radix-9 kernel achieves μ9 = 3 with rational coef-
+ficients. It is the first exact construction beyond radix
+5 and yields 5 log9 k ≈ 1.58 log2 k products, 21% fewer
+than binary splitting.
+2. Certified approximate radix-15 and radix-24 kernels,
+obtained by numerical discovery plus interval certifi-
+cation, yield 6/log2 15 ≈ 1.54 and 7/log2 24 ≈ 1.53.
+3. A general radix-kernel framework (Section 6) applies
+kernels to residuals, enabling iterative use of approxi-
+mate kernels despite spillover.
+4. Matrix-level convergence follows from an abstract the-
+orem with normal, numerical-range, and pseudospec-
+tral corollaries that quantify residual decay for nonnor-
+mal matrices.
+The transition from exact (radix-9) to certified approx-
+imate (radix-15, radix-24) kernels suggests that spillover
+is the norm at higher radices. Our local structure analy-
+sis supports that interpretation without claiming a global
+impossibility theorem: near the certified solutions, the
+prefix-exact set is a positive-dimensional manifold and the
+leading-spillover cancellation imposes one additional local
+constraint.
+Supplementary materials record the certified radii,
+interval enclosures, and validation data underlying the nu-
+merical sections. Those materials make the paper’s claims
+auditable; companion resources are available through the
+project GitHub repository and the tutorial site.
+Several mathematical directions remain:
+1. Exact vs. approximate boundary: Can we prove that exact
+radix-15 kernels do not exist, or find one?
+2. Higher radices: Can approximate kernels with μm grow-
+ing sublogarithmically improve the coefficient beyond
+1.53?
+3. Structured matrices: How do these algorithms extend to
+sparse or Toeplitz settings?
+Practical runtime measurement, larger-scale matrix
+tests, and mixed-precision or parallel/GPU implementa-
+tions remain future work. Those questions matter, but
+they are distinct from the present paper’s goal of establish-
+ing low-product kernels, certified stability radii, and the
+resulting GEMM-count consequences.
+More broadly, the paper reframes truncated Neumann-
+series evaluation as a kernel-design problem: better kernels
+translate directly into better series algorithms. That view-
+point may also benefit log-determinant estimation [4],
+where polynomial traces from radix-kernel sums could re-
+place individual power traces while reducing the number
+of matrix products.
+Acknowledgements
+This work was supported by the Laboratory Directed Re-
+search and Development Program of Oak Ridge National
+Laboratory, managed by UT-Battelle, LLC, for the U.S.
+Department of Energy.
+References
+[1] Paul F. Dubois, Anne Greenbaum, and Garry H. Rodrigue.
+“Approximating the Inverse of a Matrix for Use in Iterative
+Algorithms on Vector Processors”. In: Computing 22.3 (1979),
+pp. 257–268. DOI: 10.1007/BF02243566.
+[2] Yousef Saad. Iterative Methods for Sparse Linear Systems. 2nd.
+SIAM, 2003. DOI: 10.1137/1.9780898718003.
+[3] Nicholas J. Higham. Functions of Matrices: Theory and Computa-
+tion. SIAM, 2008. DOI: 10.1137/1.9780898717778.
+[4] Piyush Sao. “What Trace Powers Reveal About Log-Determinants:
+Closed-Form Estimators, Certificates, and Failure Modes”. In:
+arXiv preprint arXiv:2601.12612 (2025). URL: https://arxiv.org/
+abs/2601.12612.
+[5] Oscar Gustafsson et al. “Approximate Neumann Series or Exact
+Matrix Inversion for Massive MIMO?” In: Proc. IEEE Sympo-
+sium on Computer Arithmetic (ARITH). 2017, pp. 62–63. DOI:
+10.1109/ARITH.2017.14.
+[6] Shao-Feng Lei and Tadao Nakamura. “On the Fast Evaluation
+of Parallel ARMA Filters and Related Matrix Power Sums”. In:
+IEEE Transactions on Circuits and Systems I 39.4 (1992), pp. 299–
+300. DOI: 10.1109/81.129460.
+[7] Vassil S. Dimitrov and Todor V. Cooklev. “Two Algorithms for
+Modular Exponentiation Using Nonstandard Arithmetics”. In:
+IEICE Transactions on Fundamentals E78-A.1 (1995), pp. 82–87.
+[8] David Westreich. “A Practical Method for Computing the
+Exponential of a Matrix and its Integral”. In: IEEE Transactions
+on Circuits and Systems 36.1 (1989), pp. 162–164. DOI: 10.1109/
+31.16585.
+[9] Yusuke Matsumoto, Naofumi Takagi, and Kazuyoshi Tak-
+agi. “Efficient Algorithms for Computing Power Sums Using
+Higher Radices”. In: IEICE Transactions on Fundamentals E101-
+A.2 (2018), pp. 467–471. DOI: 10.1587/transfun.E101.A.467.
+[10] Michael S. Paterson and Larry J. Stockmeyer. “On the Number
+of Nonscalar Multiplications Necessary to Evaluate Polynomi-
+als”. In: SIAM Journal on Computing 2.1 (1973), pp. 60–66. DOI:
+10.1137/0202007.
+[11] Massimiliano Fasi. “Optimality of the Paterson–Stockmeyer
+Method for Evaluating Matrix Polynomials and Rational Matrix
+Functions”. In: Linear Algebra and its Applications 574 (2019),
+pp. 182–200. DOI: 10.1016/j.laa.2019.04.001.
+[12] Jorge Sastre and Javier Ibáñez. “Boosting the Computation of
+the Matrix Exponential”. In: Mathematics 9.14 (2021), p. 1600.
+DOI: 10.3390/math9141600.
+[13] Michel Crouzeix and Carlos Palencia. “The Numerical Range
+Is a (1 + √2)-Spectral Set”. In: SIAM Journal on Matrix Anal-
+ysis and Applications 38.2 (2017), pp. 649–655. DOI: 10.1137/
+17M1116672.
+[14] Lloyd N. Trefethen and Mark Embree. Spectra and Pseudospectra:
+The Behavior of Nonnormal Matrices and Operators. Princeton
+University Press, 2005.
+
+-- 11 of 15 --
+
+12 Piyush Sao
+Appendix 1. Kernel Coefficients
+This appendix provides display formulas for the kernels
+and supplementary numerical validation on test matrices.
+For the certified approximate kernels, the corresponding
+interval data are summarized in Appendix 4.
+Appendix 1.1 Quinary Kernel (2 Products)
+The quinary kernel T5 (B) = I + B + B2 + B3 + B4 is computed
+using 2 matrix products:
+U = B2, (13)
+V = U (B + U) = B3 + B4, (14)
+T5 (B) = I + B + U + V. (15)
+This is exact: all 5 coefficients equal 1.
+Appendix 1.2 Radix-9 Kernel (3 Products)
+The radix-9 kernel T9 (B) = Í8
+j=0 Bj uses 3 products:
+U = B2, (16)
+V = U (B + 2U) = B3 + 2B4, (17)
+P = (0.15B + 2U + V)(0.275B − 0.125U + 0.25V),
+(18)
+T9 (B) = I + B + 767
+800 U + 15
+32 V + P. (19)
+The rational coefficients in (19) are 767
+800 = 0.95875 and
+15
+32 = 0.46875.
+Appendix 1.3 Radix-9 Derivation Note
+Write the third product in the power basis as
+P =
+4	∑︁
+j=1
+pjBj, Q =
+4	∑︁
+j=1
+qjBj,
+and then add low-degree corrections xU + yV. Matching
+W = P · Q to the target coefficients of T9 (B) yields the
+linear coefficient conditions
+p1q1 + x = 1,
+p1q2 + p2q1 + y = 1,
+p1q3 + p2q2 + p3q1 + 2y = 1,
+p1q4 + p2q3 + p3q2 + p4q1 = 1,
+p2q4 + p3q3 + p4q2 = 1,
+p3q4 + p4q3 = 1,
+p4q4 = 1.
+Imposing the structural relations coming from P = αB +
+βU + V and Q = γB + δU + εV, namely p3 = 1, p4 = 2, and
+q4 = 2q3, closes the resulting linear system and yields the
+displayed rational solution
+(α, β, γ, δ, ε, x, y) =
+ 3
+20 , 2, 11
+40 , − 1
+8 , 1
+4 , 767
+800 , 15
+32
+
+.
+Appendix 1.4 Numerical Validation
+We validate convergence on an illustrative 64 × 64 symmet-
+ric positive definite (SPD) matrix A with geometrically
+spaced eigenvalues in [10−2, 1], giving κ(I − A) ≈ 104. In
+this appendix, let B = I − A (distinct from the kernel argu-
+ment B in the main text).
+Setup. For series index k, each method computes an
+approximation Sk to (I − B)−1. We measure the relative
+residual ∥I − (I − B)Sk ∥F/√d, where ∥ · ∥F denotes the Frobe-
+nius norm.
+Results. Table 3 lists the matrix product count required
+to reach machine precision (≈ 10−13).
+Table 3. Matrix product counts to reach 10−13 residual (d = 64, κ ≈
+104).
+Method Products Residual
+Binary (m = 2) 38 5.6 × 10−13
+Ternary (m = 3) 36 4.7 × 10−13
+Quinary (m = 5) 32 3.9 × 10−13
+Radix-9 32 4.1 × 10−13
+Radix-15 (approx.) 30 4.2 × 10−13
+Radix-24 (approx.) 28 3.4 × 10−14
+In this illustrative dense-matrix test, radix-24 uses the
+fewest products and, with refined coefficients, reaches
+machine precision despite nonzero spillover. The naive
+method requires k − 1 = 104 products for comparable
+accuracy.
+Efficiency comparison. Per radix step, the update cost is
+C(m) = μm + 2 products:
+• Binary: C(2) = 0 + 2 = 2, coefficient 2
+log2 2 = 2.00;
+• Ternary: C(3) = 1 + 2 = 3, coefficient 3
+log2 3 ≈ 1.89;
+• Quinary: C(5) = 2 + 2 = 4, coefficient 4
+log2 5 ≈ 1.72;
+• Radix-9: C(9) = 3 + 2 = 5, coefficient 5
+log2 9 ≈ 1.58;
+• Radix-15: C(15) = 4 + 2 = 6, coefficient 6
+log2 15 ≈ 1.54;
+• Radix-24: C(24) = 5 + 2 = 7, coefficient 7
+log2 24 ≈ 1.53.
+Radix-9 achieves the best rate among exact kernels; radix-
+24 achieves the best overall.
+Appendix 1.5 Approximate Kernels: Residual vs Radix
+Trade-off
+For a single truncated Neumann computation (no re-
+cursion), we compare approximate kernels at fixed ma-
+trix product budgets (6 and 7 products). Test matrix:
+d = 64, geometrically spaced eigenvalues in [0.01, 1], giv-
+ing ρ(B) = 0.99.
+
+-- 12 of 15 --
+
+Fast Evaluation of Truncated Neumann Series 13
+Key finding: Higher radix dominates. Table 4 compares
+kernels at 6 products and 7 products budgets. Even with
+high kernel residual, higher radix gives better inverse
+approximation. Error is measured in spectral norm: ∥S −
+A−1 ∥2/∥A−1 ∥2, where ∥ · ∥2 denotes the largest singular
+value.
+Table 4. Inverse approximation error (spectral norm) for single kernel
+application. “vs Exact”: ratio to exact Neumann at same radix.
+Method 	Prods Kern. Res. Inv. Err. vs Exact
+6-product budget
+Standard S7 (radix 7) – 0 0.932 –
+Radix-15 	4 5×10−16 0.860 1.000
+Radix-16 	4 1×10−2 0.852 1.000
+Radix-17 	4 1×10−1 0.844 1.001
+7-product budget
+Standard S8 (radix 8) – 0 0.923 –
+Radix-24 	5 2×10−15 0.786 1.000
+Radix-27 	5 1×10−3 0.762 1.000
+Radix-31 	5 1×10−1 0.733 1.002
+Radix-33 	5 6×10−1 0.722 1.007
+Interpretation. The “vs Exact” column shows degrada-
+tion from kernel approximation error. Even radix-33 with
+residual 0.6 is only 0.7% worse than an exact radix-33
+kernel. The dominant factor is radix m: error scales as
+ρ(B)m, so larger m gives exponentially better approxima-
+tion, overwhelming the kernel residual effect.
+Coefficients for radix-33 kernel (5 products). The ap-
+proximate coefficients cj for eT33 (B) = Í32
+j=0 cjBj: Coefficients
+j cj values
+0–10 1.00, 1.00, 1.00, 0.98, 1.00, 1.02, 1.00, 0.69, 1.12, 0.99, 1.05
+11–21 0.88, 1.11, 0.69, 0.73, 1.01, 1.27, 1.04, 1.08, 1.06, 0.98, 1.00
+22–32 0.99, 0.88, 1.13, 0.95, 1.02, 0.97, 1.01, 0.99, 1.00, 1.00, 1.00
+range from 0.69 to 1.27, yet the inverse error is only 1%
+worse than exact. No spillover terms exist beyond degree
+32.
+Appendix 2. Radix-15 Kernel: Explicit Cir-
+cuit
+The circuit (6) with P1 = B2 is fully specified by the fol-
+lowing coefficients, obtained by numerically refining an
+approximate solution of the bilinear ansatz. Each prod-
+uct Pi = Li · Ri; rows of the table give coefficients of
+{I, B, P1, . . .}. The table is rounded for display; the corre-
+sponding certified interval data are summarized in Ap-
+pendix 4.
+I 	B 	P1 	P2 	P3
+L2 0.237957446781864 0.241306784696238 1.573677404167023
+R2 0.047776286323906 −0.046512791269008 0.888968295817947
+L3 0.262503282946680 0.918866331886906 0.841863255429817 0.819355416606328
+R3 0.183860759371110 0.068445979922426 0.133854440389316 −1.405242484443339
+L4 −0.004559362003080 −1.384977065724292 0.021866758593494 0.122021888194117 0.274863153197116
+R4 −0.701388642425678 0.601773558132688 −0.624151559177423 −0.137295755918682 0.328424149078130
+Final combination:
+eT15 = I + 0.077578347530026 B + 1.778433959744106 P1
++ 0.663737059861237 P2 − 0.024081230623538 P3 + P4.
+At these coefficients, the prefix is exact to double precision:
+max0≤j≤14 |[eT15]j − 1| < 5 × 10−16. The spillover is 0.185 B15 +
+0.458 B16 + O(B17), giving error map leading coefficient
+c = 1 − [eT15]15 ≈ 0.81.
+Appendix 3. Radix-24 Kernel: Explicit Cir-
+cuit
+The 5-product circuit with P1 = B2 is specified by the
+coefficients below, obtained by the same type of numerical
+refinement. Each product Pi = Li · Ri. The coefficients are
+printed to 16 decimal places so that the displayed circuit
+itself reproduces the prefix equations to roundoff accuracy.
+The corresponding certified interval data are summarized
+in Appendix 4.
+
+-- 13 of 15 --
+
+14 Piyush Sao
+Vector Basis element Coefficient
+L2 I 0.3282879733298226
+B 0.3334609994248492
+P1 -1.6413300182113680
+R2 I 0.1016599828103740
+B 0.6352737284711171
+P1 0.9424901854962264
+L3 I -0.4039110435614196
+B -0.1853636671117334
+P1 -0.0193103621489443
+P2 0.7643808028090610
+R3 I -0.6831517007752321
+B 0.0593700272785998
+P1 0.9555951950613576
+P2 -0.8352898821299267
+L4 I 0.8503961179081752
+B -0.1700053748177661
+P1 0.4007962270352739
+P2 -0.7583911189268658
+P3 -0.4202327816885083
+R4 I 0.3328223421061135
+B 0.8160093825695688
+P1 -0.2722035796025236
+P2 0.5557279222526658
+P3 -0.4002282188877652
+L5 I -0.0031207753630199
+B 0.2316286284512770
+P1 -0.6242391015078156
+P2 0.1290807812447923
+P3 0.5768300240418512
+P4 -0.5504031164707843
+R5 I -0.5424304856178253
+B -0.2443407079828936
+P1 0.0247860011528895
+P2 0.2849712559148055
+P3 -0.0225503875904663
+P4 -0.6711249224603717
+Final combination:
+eT24 = I + 0.9847461487306262 B + 0.8611761979377541 P1
+− 0.7865479053719371 P2 − 0.0121109383555383 P3
++ 0.4000630253949220 P4 + P5.
+Evaluating the displayed 16-decimal circuit in high pre-
+cision gives max0≤j≤23 |[eT24]j − 1| < 3 × 10−16. The refined
+spillover begins at
+0.6448297923472228 B24 + 0.2138652343604695 B25
++ 0.0484602542811774 B26 + 0.1879290230749536 B27
++ 0.4296090302017557 B28 + 0.5311995248359085 B29
++ 0.4213274226205107 B30 + 0.2145076021946625 B31
++ 0.0569441977032723 B32,
+giving error-map leading coefficient c = 1 − [eT24]24 ≈
+0.3551702076527769.
+Appendix 4. Certified Approximate Ker-
+nels
+The circuit tables in Appendix 2 and Appendix 3 give dec-
+imal representatives of the certified kernels. This appendix
+summarizes the supplementary interval data underlying
+the certified kernels.
+Certification workflow. For each radix-m ansatz we form
+the prefix map
+Fm (θ) = ([fθ]0 − 1, . . . , [fθ]m−1 − 1).
+At a numerically discovered approximate solution θ0, we
+compute DFm (θ0) and select a well conditioned square
+subsystem. Holding the remaining variables fixed, we
+apply a Krawczyk inclusion test on a small nearby box
+in those variables. This certifies the existence of an exact
+root of the prefix equations near the approximate solution.
+Evaluating the polynomial and error map over that cer-
+tified box then yields interval enclosures for the spillover
+and error-map coefficients. For radix 15, the active sub-
+system has 15 variables, condition estimate 3.83 × 101, and
+certified maximum box radius 4.5 × 10−14. For radix 24,
+the corresponding values are 24 variables, 2.38 × 102, and
+6.2 × 10−14.
+Display precision policy. Appendix circuit tables dis-
+play decimal midpoint coefficients. The radix-24 table
+is printed to 16 decimal places; evaluating those printed
+decimals gives prefix defect below 3 × 10−16. Certified sta-
+bility claims always use interval data rather than rounded
+display coefficients. The complete interval records, ac-
+tive sets, and radii are provided in the supplementary cer-
+tification files certified_coeffs_radix15.json and
+certified_coeffs_radix24.json.
+Certified kernels. For radix 15, the verified box radius
+is below 4.5 × 10−14 and the certified error map satisfies
+E15 (z) = e15z15 + e16z16 + e17z17,
+with intervals centered at
+e15 = 0.81479100,
+e16 = −0.27315103,
+e17 = 0.45836003.
+For radix 24, the verified box radius is below 6.2 × 10−14
+and the certified error map coefficients are centered at
+e24 = 0.35517021, e25 = 0.43096456,
+e26 = 0.16540498, e27 = −0.13946877,
+e28 = −0.24168001, e29 = −0.10159049,
+e30 = 0.10987210, e31 = 0.20681982,
+e32 = 0.15756340, e33 = 0.05694420.
+The full certified intervals, including radii, are part of the
+supplementary certification data cited above.
+
+-- 14 of 15 --
+
+Fast Evaluation of Truncated Neumann Series 15
+Certified radii. The coefficient-surrogate radii are certi-
+fied at
+ρη,15 = 0.970897959 . . . , ρη,24 = 0.974559738 . . . .
+The direct circle-maximization test with coefficient inter-
+vals certifies
+ρcert
+q,15 = 0.970699488 . . . , ρcert
+q,24 = 0.984176086 . . . .
+For comparison, midpoint circle maximization gives the
+estimated values 0.970897959 . . . and 0.984432110 . . ..
+Appendix 5. Local Structure of the Prefix-
+Exact Set
+The certification step yields concrete base points at which
+the prefix maps have full row rank. This supports a local
+structural theorem for the approximate-kernel ansätze.
+Proposition Appendix 5.1 (Local structure near the cer-
+tified kernels). Let Fm denote the prefix map for one of the
+certified bilinear ansätze, with parameter count p. At the certi-
+fied radix-15 and radix-24 base points, the Jacobian DFm has
+full row rank m. Consequently, the prefix-exact set Fm (θ) = 0
+is locally a smooth manifold of dimension p − m: 13 for radix
+15 and 17 for radix 24. If the leading spillover coefficient is
+appended as an additional constraint, the local dimension drops
+by one.
+Proof. This is again a computer-assisted rank verification.
+At the certified base points, the Jacobian matrices are veri-
+fied to have full row rank. Full row rank of DFm invokes
+the implicit function theorem. Appending one indepen-
+dent spillover constraint increases the rank by one for
+both certified kernels, so the local dimension decreases by
+one. □
+Remark Appendix 5.2. This is a local statement only. It
+does not prove the global nonexistence of exact radix-15
+or radix-24 kernels, nor does it exclude exact kernels in
+other ansätze.
+Appendix 6. Companion Software and Re-
+producibility
+Supplementary materials accompany the paper and in-
+clude the certified interval data and validation data used in
+the numerical sections. High-level companion resources
+are available through the project GitHub repository and
+the tutorial site.
+
+-- 15 of 15 --
+

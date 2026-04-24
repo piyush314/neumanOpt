@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="460" height="420" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 420" style="width:100%; margin-top:6px" aria-label="Residual iteration flow chart">
+  <rect x="0" y="0" width="460" height="420" fill="#F9F8F8"></rect>
+            <defs>
+              <marker id="arrh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#F9F8F8"></path>
+              </marker>
+              <marker id="arri" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#272838"></path>
+              </marker>
+            </defs>
+            
+            <rect x="20" y="20" width="140" height="52" fill="#F3DE8A" stroke="#272838" stroke-width="1.5"></rect>
+            <text x="90" y="42" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="#272838">INPUT</text>
+            <text x="90" y="60" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#272838">Y₀ = I, R₀ = A</text>
+
+            
+            <rect x="20" y="108" width="420" height="64" fill="#272838" stroke="#272838"></rect>
+            <text x="40" y="132" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#F3DE8A">STEP n</text>
+            <text x="40" y="152" font-family="JetBrains Mono" font-size="13" fill="#F9F8F8">f(Rₙ)  &amp;mdash;  μₘ products &amp;nbsp;·&amp;nbsp; (radix-24: 5)</text>
+
+            
+            <rect x="20" y="196" width="200" height="56" fill="#EB9486" stroke="#272838" stroke-width="1.5"></rect>
+            <text x="120" y="218" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#272838">UPDATE Y</text>
+            <text x="120" y="238" text-anchor="middle" font-family="JetBrains Mono" font-size="12" fill="#272838">Yₙ₊₁ = Yₙ · f(Rₙ)</text>
+
+            
+            <rect x="240" y="196" width="200" height="56" fill="#F9F8F8" stroke="#272838" stroke-width="1.5"></rect>
+            <text x="340" y="218" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#272838">NEW RESIDUAL</text>
+            <text x="340" y="238" text-anchor="middle" font-family="JetBrains Mono" font-size="12" fill="#272838">Rₙ₊₁ = I − M Yₙ₊₁</text>
+
+            
+            <path d="M 340 256 Q 340 310 230 310 Q 90 310 90 260 L 90 176" fill="none" stroke="#F9F8F8" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrh)"></path>
+            <text x="230" y="328" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="0.14em" fill="#F9F8F8">LOOP  &amp;mdash;  PREFIX GROWS mⁿ</text>
+
+            
+            <rect x="20" y="350" width="420" height="54" fill="#F9F8F8" stroke="#272838" stroke-width="1.5"></rect>
+            <text x="40" y="372" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#272838">OUTPUT &amp;nbsp;·&amp;nbsp; after n lifts</text>
+            <text x="40" y="392" font-family="JetBrains Mono" font-size="12" fill="#272838">Yₙ ≈ (I − A)⁻¹ &amp;nbsp;with prefix O(A^mⁿ) residual</text>
+
+            
+            <line x1="90" y1="76" x2="90" y2="104" stroke="#272838" stroke-width="1.5" marker-end="url(#arri)"></line>
+            <line x1="90" y1="176" x2="90" y2="192" stroke="#272838" stroke-width="1.5" marker-end="url(#arri)"></line>
+            <line x1="340" y1="176" x2="340" y2="192" stroke="#272838" stroke-width="1.5" marker-end="url(#arri)"></line>
+          </svg>

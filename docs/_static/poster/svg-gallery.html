@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Poster diagrams — SVG gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#272838; --paper:#F9F8F8; --yellow:#F3DE8A; --coral:#EB9486;}
+  body{ margin:0; padding:40px; background:#e6e5e0; font-family:'JetBrains Mono',monospace; color:var(--ink);}
+  h1{ font-size:24px; margin:0 0 8px;}
+  p.sub{ font-size:12px; letter-spacing:0.1em; opacity:0.7; margin-bottom:28px;}
+  .gallery{ display:grid; grid-template-columns: 1fr; gap: 28px; max-width: 1200px; margin: 0 auto;}
+  .card{ background:var(--paper); border:1.5px solid var(--ink); padding:18px;}
+  .card h2{ font-size:13px; letter-spacing:0.14em; text-transform:uppercase; margin:0 0 10px; display:flex; justify-content:space-between; align-items:baseline;}
+  .card h2 .dim{ font-size:10px; opacity:0.6;}
+  .card .frame{ background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(39,40,56,0.04) 8px 9px); padding:12px; border:1px dashed rgba(39,40,56,0.3);}
+  .card object, .card img{ display:block; width:100%; height:auto; max-height: 500px; object-fit: contain;}
+  .card .path{ font-size:11px; margin-top:8px; opacity:0.6;}
+  .card a{ color: var(--coral); text-decoration: none; font-weight:600; letter-spacing:0.08em;}
+</style>
+</head>
+<body>
+  <h1>Poster diagrams — individual SVGs</h1>
+  <p class="sub">FIVE FILES · EDITABLE VECTOR · OPEN IN FIGMA / ILLUSTRATOR / INKSCAPE</p>
+
+  <div class="gallery">
+    <div class="card">
+      <h2><span>01 · Logo mark</span><span class="dim">96 × 96</span></h2>
+      <div class="frame"><object data="svg/01-logo-mark.svg" type="image/svg+xml"></object></div>
+      <div class="path">svg/01-logo-mark.svg &nbsp;·&nbsp; <a href="svg/01-logo-mark.svg" download>download</a></div>
+    </div>
+
+    <div class="card">
+      <h2><span>02 · Radix-9 kernel circuit (Theorem 4.1)</span><span class="dim">760 × 470</span></h2>
+      <div class="frame"><object data="svg/02-radix9-circuit.svg" type="image/svg+xml"></object></div>
+      <div class="path">svg/02-radix9-circuit.svg &nbsp;·&nbsp; <a href="svg/02-radix9-circuit.svg" download>download</a></div>
+    </div>
+
+    <div class="card">
+      <h2><span>03 · Residual-iteration flow chart</span><span class="dim">460 × 420</span></h2>
+      <div class="frame"><object data="svg/03-residual-iteration-flow.svg" type="image/svg+xml"></object></div>
+      <div class="path">svg/03-residual-iteration-flow.svg &nbsp;·&nbsp; <a href="svg/03-residual-iteration-flow.svg" download>download</a></div>
+    </div>
+
+    <div class="card">
+      <h2><span>04 · Scalar stability curve, radix-24</span><span class="dim">320 × 140</span></h2>
+      <div class="frame"><object data="svg/04-stability-curve-radix24.svg" type="image/svg+xml"></object></div>
+      <div class="path">svg/04-stability-curve-radix24.svg &nbsp;·&nbsp; <a href="svg/04-stability-curve-radix24.svg" download>download</a></div>
+    </div>
+
+    <div class="card">
+      <h2><span>05 · Residual decay — normal vs nonnormal</span><span class="dim">340 × 150</span></h2>
+      <div class="frame"><object data="svg/05-residual-decay-normal-vs-nonnormal.svg" type="image/svg+xml"></object></div>
+      <div class="path">svg/05-residual-decay-normal-vs-nonnormal.svg &nbsp;·&nbsp; <a href="svg/05-residual-decay-normal-vs-nonnormal.svg" download>download</a></div>
+    </div>
+  </div>
+</body>
+</html>
